@@ -40,4 +40,13 @@ public class ProductsController : ControllerBase
 
         return product;
     }
+    // POST: api/products
+    [HttpPost]
+    public async Task<ActionResult<Product>> CreateProduct(Product product)
+    {
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetProduct), new { id = product.ProductId }, product);
+    }
 }
