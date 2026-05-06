@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TeeCraft.API.Data;
 using TeeCraft.API.Models;
+using TeeCraft.API.DTOs;
 
 namespace TeeCraft.API.Controllers;
 
@@ -42,8 +43,16 @@ public class ProductsController : ControllerBase
     }
     // POST: api/products
     [HttpPost]
-    public async Task<ActionResult<Product>> CreateProduct(Product product)
+    public async Task<ActionResult<Product>> CreateProduct(CreateProductDto dto)
     {
+        var product = new Product
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            BasePrice = dto.BasePrice,
+            CategoryId = dto.CategoryId
+        };
+
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
 
