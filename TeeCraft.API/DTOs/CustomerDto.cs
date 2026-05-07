@@ -1,13 +1,16 @@
 ﻿namespace TeeCraft.API.DTOs;
 
-public class CreateCustomerDto
+public class CustomerDto
 {
+    public int CustomerId { get; set; }
+
     public int UserId { get; set; }
+
+    public string Email { get; set; } = string.Empty;
 
     public string FirstName { get; set; } = string.Empty;
 
     public string LastName { get; set; } = string.Empty;
 
     public string PhoneNumber { get; set; } = string.Empty;
-
 }

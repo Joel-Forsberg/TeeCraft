@@ -19,20 +19,39 @@ public class CustomersController : ControllerBase
 
     // GET: api/customers
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+    public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
     {
         return await _context.Customers
             .Include(c => c.User)
+            .Select(c => new CustomerDto
+            {
+                CustomerId = c.CustomerId,
+                UserId = c.UserId,
+                Email = c.User.Email,
+                FirstName = c.FirstName,
+                LastName = c.LastName,
+                PhoneNumber = c.PhoneNumber
+            })
             .ToListAsync();
     }
 
     // GET: api/customers/1
     [HttpGet("{id}")]
-    public async Task<ActionResult<Customer>> GetCustomer(int id)
+    public async Task<ActionResult<CustomerDto>> GetCustomer(int id)
     {
         var customer = await _context.Customers
             .Include(c => c.User)
-            .FirstOrDefaultAsync(c => c.CustomerId == id);
+            .Where(c => c.CustomerId == id)
+            .Select(c => new CustomerDto
+            {
+                CustomerId = c.CustomerId,
+                UserId = c.UserId,
+                Email = c.User.Email,
+                FirstName = c.FirstName,
+                LastName = c.LastName,
+                PhoneNumber = c.PhoneNumber
+            })
+            .FirstOrDefaultAsync();
 
         if (customer == null)
         {
@@ -50,6 +69,13 @@ public class CustomersController : ControllerBase
 
         if (!userExists)
         {
+            var customerAlreadyExists = await _context.Customers
+    .AnyAsync(c => c.UserId == dto.UserId);
+
+            if (customerAlreadyExists)
+            {
+                return BadRequest("Customer already exists for this user.");
+            }
             return BadRequest("User does not exist.");
         }
 
