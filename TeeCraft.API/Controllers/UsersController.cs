@@ -19,20 +19,34 @@ public class UsersController : ControllerBase
 
     // GET: api/users
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
     {
         return await _context.Users
             .Include(u => u.Role)
+            .Select(u => new UserDto
+            {
+                UserId = u.UserId,
+                Email = u.Email,
+                RoleName = u.Role.Name,
+                CreatedAt = u.CreatedAt
+            })
             .ToListAsync();
     }
-
     // GET: api/users/1
     [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetUser(int id)
+    public async Task<ActionResult<UserDto>> GetUser(int id)
     {
         var user = await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == id);
+            .Where(u => u.UserId == id)
+            .Select(u => new UserDto
+            {
+                UserId = u.UserId,
+                Email = u.Email,
+                RoleName = u.Role.Name,
+                CreatedAt = u.CreatedAt
+            })
+            .FirstOrDefaultAsync();
 
         if (user == null)
         {
