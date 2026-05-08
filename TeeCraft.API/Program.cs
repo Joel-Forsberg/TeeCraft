@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using TeeCraft.API.Data;
 
 namespace TeeCraft.API;
@@ -9,20 +12,36 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Lägg till DbContext
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        // Lägg till controllers
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                };
+            });
+
+        builder.Services.AddAuthorization();
+
         builder.Services.AddControllers();
 
-        // Swagger / OpenAPI
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
         var app = builder.Build();
 
-        // Swagger endast i development
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -31,6 +50,7 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();
