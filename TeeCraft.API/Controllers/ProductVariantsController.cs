@@ -92,4 +92,28 @@ public class ProductVariantsController : ControllerBase
 
         return CreatedAtAction(nameof(GetProductVariant), new { id = variant.ProductVariantId }, variant);
     }
+
+    // PUT: api/productvariants/1/stock
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/stock")]
+    public async Task<IActionResult> UpdateStock(int id, UpdateStockDto dto)
+    {
+        if (dto.StockQuantity < 0)
+        {
+            return BadRequest("Stock quantity cannot be negative.");
+        }
+
+        var variant = await _context.ProductVariants.FindAsync(id);
+
+        if (variant == null)
+        {
+            return NotFound();
+        }
+
+        variant.StockQuantity = dto.StockQuantity;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
