@@ -13,6 +13,7 @@ public class ProductDto
     public int CategoryId { get; set; }
 
     public string CategoryName { get; set; } = string.Empty;
-
+    public double AverageRating { get; set; }
+    public int ReviewCount { get; set; }
     public List<ProductVariantDto> ProductVariants { get; set; } = new();
 }

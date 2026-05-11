@@ -59,26 +59,38 @@ public class ProductsController : ControllerBase
         var products = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(p => new ProductDto
-            {
-                ProductId = p.ProductId,
-                Name = p.Name,
-                Description = p.Description,
-                BasePrice = p.BasePrice,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category.Name,
-                ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
-                {
-                    ProductVariantId = v.ProductVariantId,
-                    ProductId = v.ProductId,
-                    ProductName = p.Name,
-                    Color = v.Color,
-                    Size = v.Size,
-                    Fit = v.Fit,
-                    StockQuantity = v.StockQuantity,
-                    Price = v.Price
-                }).ToList()
-            })
+           .Select(p => new ProductDto
+           {
+               ProductId = p.ProductId,
+               Name = p.Name,
+               Description = p.Description,
+               BasePrice = p.BasePrice,
+               CategoryId = p.CategoryId,
+               CategoryName = p.Category.Name,
+
+               AverageRating = _context.Reviews
+        .Where(r => r.ProductId == p.ProductId)
+        .Any()
+            ? _context.Reviews
+                .Where(r => r.ProductId == p.ProductId)
+                .Average(r => r.Rating)
+            : 0,
+
+               ReviewCount = _context.Reviews
+        .Count(r => r.ProductId == p.ProductId),
+
+               ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
+               {
+                   ProductVariantId = v.ProductVariantId,
+                   ProductId = v.ProductId,
+                   ProductName = v.Product.Name,
+                   Color = v.Color,
+                   Size = v.Size,
+                   Fit = v.Fit,
+                   StockQuantity = v.StockQuantity,
+                   Price = v.Price
+               }).ToList()
+           })
             .ToListAsync();
 
         return Ok(products);
@@ -92,26 +104,38 @@ public class ProductsController : ControllerBase
             .Include(p => p.Category)
             .Include(p => p.ProductVariants)
             .Where(p => p.ProductId == id)
-            .Select(p => new ProductDto
-            {
-                ProductId = p.ProductId,
-                Name = p.Name,
-                Description = p.Description,
-                BasePrice = p.BasePrice,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category.Name,
-                ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
-                {
-                    ProductVariantId = v.ProductVariantId,
-                    ProductId = v.ProductId,
-                    ProductName = p.Name,
-                    Color = v.Color,
-                    Size = v.Size,
-                    Fit = v.Fit,
-                    StockQuantity = v.StockQuantity,
-                    Price = v.Price
-                }).ToList()
-            })
+          .Select(p => new ProductDto
+          {
+              ProductId = p.ProductId,
+              Name = p.Name,
+              Description = p.Description,
+              BasePrice = p.BasePrice,
+              CategoryId = p.CategoryId,
+              CategoryName = p.Category.Name,
+
+              AverageRating = _context.Reviews
+        .Where(r => r.ProductId == p.ProductId)
+        .Any()
+            ? _context.Reviews
+                .Where(r => r.ProductId == p.ProductId)
+                .Average(r => r.Rating)
+            : 0,
+
+              ReviewCount = _context.Reviews
+        .Count(r => r.ProductId == p.ProductId),
+
+              ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
+              {
+                  ProductVariantId = v.ProductVariantId,
+                  ProductId = v.ProductId,
+                  ProductName = v.Product.Name,
+                  Color = v.Color,
+                  Size = v.Size,
+                  Fit = v.Fit,
+                  StockQuantity = v.StockQuantity,
+                  Price = v.Price
+              }).ToList()
+          })
             .FirstOrDefaultAsync();
 
         if (product == null)
@@ -239,26 +263,38 @@ public class ProductsController : ControllerBase
         }
 
         var products = await productsQuery
-            .Select(p => new ProductDto
-            {
-                ProductId = p.ProductId,
-                Name = p.Name,
-                Description = p.Description,
-                BasePrice = p.BasePrice,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category.Name,
-                ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
-                {
-                    ProductVariantId = v.ProductVariantId,
-                    ProductId = v.ProductId,
-                    ProductName = p.Name,
-                    Color = v.Color,
-                    Size = v.Size,
-                    Fit = v.Fit,
-                    StockQuantity = v.StockQuantity,
-                    Price = v.Price
-                }).ToList()
-            })
+           .Select(p => new ProductDto
+           {
+               ProductId = p.ProductId,
+               Name = p.Name,
+               Description = p.Description,
+               BasePrice = p.BasePrice,
+               CategoryId = p.CategoryId,
+               CategoryName = p.Category.Name,
+
+               AverageRating = _context.Reviews
+        .Where(r => r.ProductId == p.ProductId)
+        .Any()
+            ? _context.Reviews
+                .Where(r => r.ProductId == p.ProductId)
+                .Average(r => r.Rating)
+            : 0,
+
+               ReviewCount = _context.Reviews
+        .Count(r => r.ProductId == p.ProductId),
+
+               ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
+               {
+                   ProductVariantId = v.ProductVariantId,
+                   ProductId = v.ProductId,
+                   ProductName = v.Product.Name,
+                   Color = v.Color,
+                   Size = v.Size,
+                   Fit = v.Fit,
+                   StockQuantity = v.StockQuantity,
+                   Price = v.Price
+               }).ToList()
+           })
             .ToListAsync();
 
         return Ok(products);
