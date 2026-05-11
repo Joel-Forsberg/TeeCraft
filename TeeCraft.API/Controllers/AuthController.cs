@@ -67,6 +67,39 @@ public class AuthController : ControllerBase
         return Ok("User registered successfully.");
     }
 
+    // POST: api/auth/register-admin
+    [HttpPost("register-admin")]
+    public async Task<ActionResult> RegisterAdmin(RegisterAdminDto dto)
+    {
+        var userExists = await _context.Users
+            .AnyAsync(u => u.Email == dto.Email);
+
+        if (userExists)
+        {
+            return BadRequest("User already exists.");
+        }
+
+        var adminRole = await _context.Roles
+            .FirstOrDefaultAsync(r => r.Name == "Admin");
+
+        if (adminRole == null)
+        {
+            return BadRequest("Admin role does not exist.");
+        }
+
+        var user = new User
+        {
+            Email = dto.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            RoleId = adminRole.RoleId
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        return Ok("Admin registered successfully.");
+    }
+
     // POST: api/auth/login
     [HttpPost("login")]
     public async Task<ActionResult> Login(LoginDto dto)
