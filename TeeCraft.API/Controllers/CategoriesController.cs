@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TeeCraft.API.Data;
 using TeeCraft.API.Models;
 using TeeCraft.API.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TeeCraft.API.Controllers;
 
@@ -43,6 +44,7 @@ public class CategoriesController : ControllerBase
     }
 
     // POST: api/categories
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Category>> CreateCategory(CreateCategoryDto dto)
     {

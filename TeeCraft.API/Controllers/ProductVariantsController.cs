@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TeeCraft.API.Data;
 using TeeCraft.API.DTOs;
 using TeeCraft.API.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TeeCraft.API.Controllers;
 
@@ -65,6 +66,7 @@ public class ProductVariantsController : ControllerBase
     }
 
     // POST: api/productvariants
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<ProductVariant>> CreateProductVariant(CreateProductVariantDto dto)
     {

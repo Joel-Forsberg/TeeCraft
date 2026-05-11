@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TeeCraft.API.Data;
 using TeeCraft.API.Models;
 using TeeCraft.API.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TeeCraft.API.Controllers;
 
@@ -42,6 +43,7 @@ public class ProductsController : ControllerBase
         return product;
     }
     // POST: api/products
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct(CreateProductDto dto)
     {
