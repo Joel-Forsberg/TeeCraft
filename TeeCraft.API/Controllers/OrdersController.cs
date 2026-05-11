@@ -43,7 +43,7 @@ public class OrdersController : ControllerBase
 
     // POST: api/orders/checkout
     [HttpPost("checkout")]
-    public async Task<ActionResult<Order>> Checkout(CheckoutDto dto)
+    public async Task<ActionResult<OrderDto>> Checkout(CheckoutDto dto)
     {
         var cart = await _context.Carts
             .Include(c => c.CartItems)
