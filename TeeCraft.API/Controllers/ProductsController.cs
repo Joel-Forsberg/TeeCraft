@@ -22,11 +22,43 @@ public class ProductsController : ControllerBase
 
     // GET: api/products
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
+    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts(
+     int page = 1,
+     int pageSize = 10,
+     string? sortBy = null,
+     bool descending = false)
     {
-        return await _context.Products
+        if (page <= 0)
+        {
+            return BadRequest("Page must be greater than 0.");
+        }
+
+        if (pageSize <= 0 || pageSize > 50)
+        {
+            return BadRequest("Page size must be between 1 and 50.");
+        }
+
+        var query = _context.Products
             .Include(p => p.Category)
             .Include(p => p.ProductVariants)
+            .AsQueryable();
+
+        query = sortBy?.ToLower() switch
+        {
+            "price" => descending
+                ? query.OrderByDescending(p => p.BasePrice)
+                : query.OrderBy(p => p.BasePrice),
+
+            "name" => descending
+                ? query.OrderByDescending(p => p.Name)
+                : query.OrderBy(p => p.Name),
+
+            _ => query.OrderBy(p => p.ProductId)
+        };
+
+        var products = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(p => new ProductDto
             {
                 ProductId = p.ProductId,
@@ -48,6 +80,8 @@ public class ProductsController : ControllerBase
                 }).ToList()
             })
             .ToListAsync();
+
+        return Ok(products);
     }
 
     // GET: api/products/1
