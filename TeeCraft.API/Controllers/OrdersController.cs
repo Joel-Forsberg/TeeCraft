@@ -165,4 +165,30 @@ public class OrdersController : ControllerBase
 
         return Ok(orders);
     }
+
+    // PUT: api/orders/1/status
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateOrderStatus(int id, UpdateOrderStatusDto dto)
+    {
+        var allowedStatuses = new[] { "Created", "Processing", "Shipped", "Completed", "Cancelled" };
+
+        if (!allowedStatuses.Contains(dto.Status))
+        {
+            return BadRequest("Invalid order status.");
+        }
+
+        var order = await _context.Orders.FindAsync(id);
+
+        if (order == null)
+        {
+            return NotFound();
+        }
+
+        order.Status = dto.Status;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
