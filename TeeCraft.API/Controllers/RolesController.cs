@@ -3,11 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using TeeCraft.API.Data;
 using TeeCraft.API.DTOs;
 using TeeCraft.API.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TeeCraft.API.Controllers;
 
-[Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
 [ApiController]
+[Route("api/[controller]")]
 public class RolesController : ControllerBase
 {
     private readonly AppDbContext _context;
