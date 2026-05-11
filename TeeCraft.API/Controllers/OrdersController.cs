@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TeeCraft.API.Data;
 using TeeCraft.API.DTOs;
 using TeeCraft.API.Models;
-using Microsoft.AspNetCore.Authorization;
 
 namespace TeeCraft.API.Controllers;
 
@@ -115,5 +116,53 @@ public class OrdersController : ControllerBase
         };
 
         return CreatedAtAction(nameof(GetOrdersByCustomer), new { customerId = dto.CustomerId }, response);
+    }
+
+    // GET: api/orders/my-orders
+    [Authorize]
+    [HttpGet("my-orders")]
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetMyOrders()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+        {
+            return Unauthorized();
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var customer = await _context.Customers
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (customer == null)
+        {
+            return NotFound("Customer profile not found.");
+        }
+
+        var orders = await _context.Orders
+            .Where(o => o.CustomerId == customer.CustomerId)
+            .Include(o => o.OrderItems)
+            .Include(o => o.Payment)
+            .Select(o => new OrderDto
+            {
+                OrderId = o.OrderId,
+                CustomerId = o.CustomerId,
+                OrderDate = o.OrderDate,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                PaymentStatus = o.Payment != null ? o.Payment.PaymentStatus : string.Empty,
+                PaymentMethod = o.Payment != null ? o.Payment.PaymentMethod : string.Empty,
+                Items = o.OrderItems.Select(i => new OrderItemDto
+                {
+                    OrderItemId = i.OrderItemId,
+                    ProductVariantId = i.ProductVariantId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            })
+            .ToListAsync();
+
+        return Ok(orders);
     }
 }
