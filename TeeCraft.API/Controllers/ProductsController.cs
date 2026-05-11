@@ -152,4 +152,81 @@ public class ProductsController : ControllerBase
 
         return NoContent();
     }
+
+    // GET: api/products/search?query=tee&color=Black&size=L&minPrice=100&maxPrice=400
+    [HttpGet("search")]
+    public async Task<ActionResult<IEnumerable<ProductDto>>> SearchProducts(
+        string? query,
+        int? categoryId,
+        string? color,
+        string? size,
+        decimal? minPrice,
+        decimal? maxPrice)
+    {
+        var productsQuery = _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductVariants)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            productsQuery = productsQuery.Where(p =>
+                p.Name.Contains(query) ||
+                p.Description.Contains(query));
+        }
+
+        if (categoryId.HasValue)
+        {
+            productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(color))
+        {
+            productsQuery = productsQuery.Where(p =>
+                p.ProductVariants.Any(v => v.Color == color));
+        }
+
+        if (!string.IsNullOrWhiteSpace(size))
+        {
+            productsQuery = productsQuery.Where(p =>
+                p.ProductVariants.Any(v => v.Size == size));
+        }
+
+        if (minPrice.HasValue)
+        {
+            productsQuery = productsQuery.Where(p =>
+                p.ProductVariants.Any(v => v.Price >= minPrice.Value));
+        }
+
+        if (maxPrice.HasValue)
+        {
+            productsQuery = productsQuery.Where(p =>
+                p.ProductVariants.Any(v => v.Price <= maxPrice.Value));
+        }
+
+        var products = await productsQuery
+            .Select(p => new ProductDto
+            {
+                ProductId = p.ProductId,
+                Name = p.Name,
+                Description = p.Description,
+                BasePrice = p.BasePrice,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category.Name,
+                ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
+                {
+                    ProductVariantId = v.ProductVariantId,
+                    ProductId = v.ProductId,
+                    ProductName = p.Name,
+                    Color = v.Color,
+                    Size = v.Size,
+                    Fit = v.Fit,
+                    StockQuantity = v.StockQuantity,
+                    Price = v.Price
+                }).ToList()
+            })
+            .ToListAsync();
+
+        return Ok(products);
+    }
 }
