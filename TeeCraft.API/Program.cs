@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TeeCraft.API.Data;
+using TeeCraft.API.Middleware;
 
 namespace TeeCraft.API;
 
@@ -74,6 +75,8 @@ public class Program
         });
 
         var app = builder.Build();
+
+        app.UseMiddleware<ErrorHandlingMiddleware>();
 
         if (app.Environment.IsDevelopment())
         {
