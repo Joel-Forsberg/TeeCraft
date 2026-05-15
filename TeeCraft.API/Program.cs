@@ -77,6 +77,7 @@ public class Program
         var app = builder.Build();
 
         app.UseMiddleware<ErrorHandlingMiddleware>();
+        app.UseMiddleware<RequestLoggingMiddleware>();
 
         if (app.Environment.IsDevelopment())
         {
