@@ -22,7 +22,7 @@ public class ProductsController : ControllerBase
 
     // GET: api/products
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts(
+    public async Task<ActionResult<PagedResultDto<ProductDto>>> GetProducts(
      int page = 1,
      int pageSize = 10,
      string? sortBy = null,
@@ -56,44 +56,55 @@ public class ProductsController : ControllerBase
             _ => query.OrderBy(p => p.ProductId)
         };
 
+        var totalItems = await query.CountAsync();
+
         var products = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-           .Select(p => new ProductDto
-           {
-               ProductId = p.ProductId,
-               Name = p.Name,
-               Description = p.Description,
-               BasePrice = p.BasePrice,
-               CategoryId = p.CategoryId,
-               CategoryName = p.Category.Name,
+            .Select(p => new ProductDto
+            {
+                ProductId = p.ProductId,
+                Name = p.Name,
+                Description = p.Description,
+                BasePrice = p.BasePrice,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category.Name,
 
-               AverageRating = _context.Reviews
-        .Where(r => r.ProductId == p.ProductId)
-        .Any()
-            ? _context.Reviews
-                .Where(r => r.ProductId == p.ProductId)
-                .Average(r => r.Rating)
-            : 0,
+                AverageRating = _context.Reviews
+                    .Where(r => r.ProductId == p.ProductId)
+                    .Any()
+                        ? _context.Reviews
+                            .Where(r => r.ProductId == p.ProductId)
+                            .Average(r => r.Rating)
+                        : 0,
 
-               ReviewCount = _context.Reviews
-        .Count(r => r.ProductId == p.ProductId),
+                ReviewCount = _context.Reviews
+                    .Count(r => r.ProductId == p.ProductId),
 
-               ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
-               {
-                   ProductVariantId = v.ProductVariantId,
-                   ProductId = v.ProductId,
-                   ProductName = v.Product.Name,
-                   Color = v.Color,
-                   Size = v.Size,
-                   Fit = v.Fit,
-                   StockQuantity = v.StockQuantity,
-                   Price = v.Price
-               }).ToList()
-           })
+                ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
+                {
+                    ProductVariantId = v.ProductVariantId,
+                    ProductId = v.ProductId,
+                    ProductName = p.Name,
+                    Color = v.Color,
+                    Size = v.Size,
+                    Fit = v.Fit,
+                    StockQuantity = v.StockQuantity,
+                    Price = v.Price
+                }).ToList()
+            })
             .ToListAsync();
 
-        return Ok(products);
+        var result = new PagedResultDto<ProductDto>
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+            Items = products
+        };
+
+        return Ok(result);
     }
 
     // GET: api/products/1

@@ -87,4 +87,43 @@ public class CartController : ControllerBase
 
         return Ok("Item added to cart.");
     }
+
+    // GET: api/cart/5/summary
+    [HttpGet("{customerId}/summary")]
+    public async Task<ActionResult<CartSummaryDto>> GetCartSummary(int customerId)
+    {
+        var cart = await _context.Carts
+            .Include(c => c.CartItems)
+            .ThenInclude(ci => ci.ProductVariant)
+            .ThenInclude(pv => pv.Product)
+            .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+
+        if (cart == null)
+        {
+            return NotFound("Cart not found.");
+        }
+
+        var items = cart.CartItems.Select(item => new CartSummaryItemDto
+        {
+            CartItemId = item.CartItemId,
+            ProductVariantId = item.ProductVariantId,
+            ProductName = item.ProductVariant.Product.Name,
+            Color = item.ProductVariant.Color,
+            Size = item.ProductVariant.Size,
+            Fit = item.ProductVariant.Fit,
+            Quantity = item.Quantity,
+            UnitPrice = item.ProductVariant.Price,
+            LineTotal = item.Quantity * item.ProductVariant.Price
+        }).ToList();
+
+        var summary = new CartSummaryDto
+        {
+            CustomerId = customerId,
+            TotalItems = items.Sum(i => i.Quantity),
+            TotalPrice = items.Sum(i => i.LineTotal),
+            Items = items
+        };
+
+        return Ok(summary);
+    }
 }
