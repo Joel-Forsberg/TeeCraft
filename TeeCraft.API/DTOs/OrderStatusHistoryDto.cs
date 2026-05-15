@@ -1,16 +1,14 @@
-﻿namespace TeeCraft.API.Models;
+﻿namespace TeeCraft.API.DTOs;
 
-public class OrderStatusHistory
+public class OrderStatusHistoryDto
 {
     public int OrderStatusHistoryId { get; set; }
 
     public int OrderId { get; set; }
 
-    public Order Order { get; set; } = null!;
-
     public string OldStatus { get; set; } = string.Empty;
 
     public string NewStatus { get; set; } = string.Empty;
 
-    public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ChangedAt { get; set; }
 }

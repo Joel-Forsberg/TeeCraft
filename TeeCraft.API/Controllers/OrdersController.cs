@@ -185,10 +185,40 @@ public class OrdersController : ControllerBase
             return NotFound();
         }
 
+        var oldStatus = order.Status;
+
         order.Status = dto.Status;
+
+        _context.OrderStatusHistories.Add(new OrderStatusHistory
+        {
+            OrderId = order.OrderId,
+            OldStatus = oldStatus,
+            NewStatus = dto.Status
+        });
 
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // GET: api/orders/4/history
+    [Authorize(Roles = "Admin")]
+    [HttpGet("{id}/history")]
+    public async Task<ActionResult<IEnumerable<OrderStatusHistoryDto>>> GetOrderHistory(int id)
+    {
+        var history = await _context.OrderStatusHistories
+            .Where(h => h.OrderId == id)
+            .OrderByDescending(h => h.ChangedAt)
+            .Select(h => new OrderStatusHistoryDto
+            {
+                OrderStatusHistoryId = h.OrderStatusHistoryId,
+                OrderId = h.OrderId,
+                OldStatus = h.OldStatus,
+                NewStatus = h.NewStatus,
+                ChangedAt = h.ChangedAt
+            })
+            .ToListAsync();
+
+        return Ok(history);
     }
 }
