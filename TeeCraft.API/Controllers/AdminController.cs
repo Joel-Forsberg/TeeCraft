@@ -42,4 +42,25 @@ public class AdminController : ControllerBase
 
         return Ok(dashboard);
     }
+
+    // GET: api/admin/audit-logs
+    [HttpGet("audit-logs")]
+    public async Task<ActionResult<IEnumerable<AuditLogDto>>> GetAuditLogs()
+    {
+        var logs = await _context.AuditLogs
+            .OrderByDescending(l => l.CreatedAt)
+            .Select(l => new AuditLogDto
+            {
+                AuditLogId = l.AuditLogId,
+                UserId = l.UserId,
+                Action = l.Action,
+                EntityName = l.EntityName,
+                EntityId = l.EntityId,
+                Details = l.Details,
+                CreatedAt = l.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(logs);
+    }
 }

@@ -213,6 +213,14 @@ public class ProductsController : ControllerBase
         }
 
         product.IsDeleted = true;
+        _context.AuditLogs.Add(new AuditLog
+        {
+            UserId = null,
+            Action = "DELETE",
+            EntityName = "Product",
+            EntityId = product.ProductId,
+            Details = $"Product '{product.Name}' was soft deleted."
+        });
         await _context.SaveChangesAsync();
 
         return NoContent();
@@ -322,7 +330,14 @@ public class ProductsController : ControllerBase
         }
 
         product.IsDeleted = false;
-
+        _context.AuditLogs.Add(new AuditLog
+        {
+            UserId = null,
+            Action = "RESTORE",
+            EntityName = "Product",
+            EntityId = product.ProductId,
+            Details = $"Product '{product.Name}' was restored."
+        });
         await _context.SaveChangesAsync();
 
         return NoContent();
