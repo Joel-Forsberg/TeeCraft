@@ -39,6 +39,7 @@ public class ProductsController : ControllerBase
         }
 
         var query = _context.Products
+            .Where(p => !p.IsDeleted)
             .Include(p => p.Category)
             .Include(p => p.ProductVariants)
             .AsQueryable();
@@ -107,15 +108,15 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
-    // GET: api/products/1
+    // GET: api/product/1
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductDto>> GetProduct(int id)
     {
         var product = await _context.Products
+            .Where(p => p.ProductId == id && !p.IsDeleted)
             .Include(p => p.Category)
             .Include(p => p.ProductVariants)
-            .Where(p => p.ProductId == id)
-          .Select(p => new ProductDto
+            .Select(p => new ProductDto
           {
               ProductId = p.ProductId,
               Name = p.Name,
@@ -125,15 +126,15 @@ public class ProductsController : ControllerBase
               CategoryName = p.Category.Name,
 
               AverageRating = _context.Reviews
-        .Where(r => r.ProductId == p.ProductId)
-        .Any()
+              .Where(r => r.ProductId == p.ProductId)
+              .Any()
             ? _context.Reviews
                 .Where(r => r.ProductId == p.ProductId)
                 .Average(r => r.Rating)
             : 0,
 
               ReviewCount = _context.Reviews
-        .Count(r => r.ProductId == p.ProductId),
+              .Count(r => r.ProductId == p.ProductId),
 
               ProductVariants = p.ProductVariants.Select(v => new ProductVariantDto
               {
@@ -211,12 +212,7 @@ public class ProductsController : ControllerBase
             return NotFound();
         }
 
-        if (product.ProductVariants.Any())
-        {
-            return BadRequest("Product cannot be deleted because it has product variants.");
-        }
-
-        _context.Products.Remove(product);
+        product.IsDeleted = true;
         await _context.SaveChangesAsync();
 
         return NoContent();
@@ -233,6 +229,7 @@ public class ProductsController : ControllerBase
         decimal? maxPrice)
     {
         var productsQuery = _context.Products
+            .Where(p => !p.IsDeleted)
             .Include(p => p.Category)
             .Include(p => p.ProductVariants)
             .AsQueryable();
@@ -309,5 +306,25 @@ public class ProductsController : ControllerBase
             .ToListAsync();
 
         return Ok(products);
+    }
+
+    // PUT: api/products/1/restore
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/restore")]
+    public async Task<IActionResult> RestoreProduct(int id)
+    {
+        var product = await _context.Products
+            .FirstOrDefaultAsync(p => p.ProductId == id);
+
+        if (product == null)
+        {
+            return NotFound();
+        }
+
+        product.IsDeleted = false;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 }

@@ -15,4 +15,6 @@ public class Product
     public Category Category { get; set; } = null!;
 
     public ICollection<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
+
+    public bool IsDeleted { get; set; } = false;
 }
