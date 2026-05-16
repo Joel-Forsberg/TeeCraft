@@ -112,4 +112,31 @@ public class AdminController : ControllerBase
 
         return Ok(lowStock);
     }
+
+    // GET: api/admin/sales-summary
+    [Authorize(Roles = "Admin")]
+    [HttpGet("sales-summary")]
+    public async Task<ActionResult<SalesSummaryDto>> GetSalesSummary()
+    {
+        var completedOrders = await _context.Orders
+            .Where(o => o.Status != "Cancelled")
+            .ToListAsync();
+
+        var totalRevenue = completedOrders.Sum(o => o.TotalAmount);
+
+        var totalOrders = completedOrders.Count;
+
+        var averageOrderValue = totalOrders > 0
+            ? totalRevenue / totalOrders
+            : 0;
+
+        var summary = new SalesSummaryDto
+        {
+            TotalRevenue = totalRevenue,
+            TotalOrders = totalOrders,
+            AverageOrderValue = averageOrderValue
+        };
+
+        return Ok(summary);
+    }
 }
