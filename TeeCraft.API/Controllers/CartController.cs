@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TeeCraft.API.Data;
 using TeeCraft.API.DTOs;
+using TeeCraft.API.DTOs.Cart;
 using TeeCraft.API.Models;
 
 namespace TeeCraft.API.Controllers;

@@ -1,4 +1,4 @@
-﻿namespace TeeCraft.API.DTOs;
+﻿namespace TeeCraft.API.DTOs.Products;
 
 public class UpdateStockDto
 {

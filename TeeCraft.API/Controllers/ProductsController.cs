@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using TeeCraft.API.Data;
 using TeeCraft.API.Models;
-using TeeCraft.API.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using TeeCraft.API.DTOs.Products;
 
 
 namespace TeeCraft.API.Controllers;

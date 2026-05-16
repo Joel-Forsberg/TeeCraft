@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TeeCraft.API.Data;
-using TeeCraft.API.DTOs;
+using TeeCraft.API.DTOs.Customers;
 using TeeCraft.API.Models;
 
 namespace TeeCraft.API.Controllers;

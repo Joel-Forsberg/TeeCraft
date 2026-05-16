@@ -5,7 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TeeCraft.API.Data;
-using TeeCraft.API.DTOs;
+using TeeCraft.API.DTOs.Auth;
 using TeeCraft.API.Models;
 
 namespace TeeCraft.API.Controllers;

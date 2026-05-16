@@ -1,4 +1,4 @@
-﻿namespace TeeCraft.API.DTOs;
+﻿namespace TeeCraft.API.DTOs.Admin;
 
 public class AdminDashboardDto
 {

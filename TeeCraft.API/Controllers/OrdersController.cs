@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TeeCraft.API.Data;
-using TeeCraft.API.DTOs;
+using TeeCraft.API.DTOs.Cart;
+using TeeCraft.API.DTOs.Orders;
 using TeeCraft.API.Models;
 
 namespace TeeCraft.API.Controllers;
