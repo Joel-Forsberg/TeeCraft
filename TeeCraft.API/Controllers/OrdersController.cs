@@ -222,4 +222,41 @@ public class OrdersController : ControllerBase
 
         return Ok(history);
     }
+
+    // GET: api/orders/1/receipt
+    [Authorize]
+    [HttpGet("{id}/receipt")]
+    public async Task<ActionResult<OrderReceiptDto>> GetReceipt(int id)
+    {
+        var order = await _context.Orders
+            .Include(o => o.Customer)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.ProductVariant)
+                    .ThenInclude(pv => pv.Product)
+            .FirstOrDefaultAsync(o => o.OrderId == id);
+
+        if (order == null)
+        {
+            return NotFound();
+        }
+
+        var receipt = new OrderReceiptDto
+        {
+            OrderId = order.OrderId,
+            CustomerName = order.Customer.FirstName + " " + order.Customer.LastName,
+            OrderDate = order.OrderDate,
+            Status = order.Status,
+            TotalAmount = order.TotalAmount,
+
+            Items = order.OrderItems.Select(oi => new OrderItemDto
+            {
+                ProductVariantId = oi.ProductVariantId,
+                ProductName = oi.ProductVariant.Product.Name,
+                Quantity = oi.Quantity,
+                UnitPrice = oi.UnitPrice
+            }).ToList()
+        };
+
+        return Ok(receipt);
+    }
 }
