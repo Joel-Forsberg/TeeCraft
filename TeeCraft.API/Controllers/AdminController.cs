@@ -63,4 +63,53 @@ public class AdminController : ControllerBase
 
         return Ok(logs);
     }
+
+    // GET: api/admin/top-products
+    [Authorize(Roles = "Admin")]
+    [HttpGet("top-products")]
+    public async Task<ActionResult<IEnumerable<TopProductDto>>> GetTopProducts()
+    {
+        var topProducts = await _context.OrderItems
+            .Include(oi => oi.ProductVariant)
+            .ThenInclude(v => v.Product)
+            .GroupBy(oi => new
+            {
+                oi.ProductVariant.Product.ProductId,
+                oi.ProductVariant.Product.Name
+            })
+            .Select(g => new TopProductDto
+            {
+                ProductId = g.Key.ProductId,
+                ProductName = g.Key.Name,
+                TotalSold = g.Sum(x => x.Quantity),
+                Revenue = g.Sum(x => x.Quantity * x.UnitPrice)
+            })
+            .OrderByDescending(x => x.TotalSold)
+            .Take(10)
+            .ToListAsync();
+
+        return Ok(topProducts);
+    }
+
+    // GET: api/admin/low-stock
+    [Authorize(Roles = "Admin")]
+    [HttpGet("low-stock")]
+    public async Task<ActionResult<IEnumerable<LowStockDto>>> GetLowStockProducts()
+    {
+        var lowStock = await _context.ProductVariants
+            .Include(v => v.Product)
+            .Where(v => v.StockQuantity <= 5)
+            .Select(v => new LowStockDto
+            {
+                ProductVariantId = v.ProductVariantId,
+                ProductName = v.Product.Name,
+                Color = v.Color,
+                Size = v.Size,
+                StockQuantity = v.StockQuantity
+            })
+            .OrderBy(v => v.StockQuantity)
+            .ToListAsync();
+
+        return Ok(lowStock);
+    }
 }
