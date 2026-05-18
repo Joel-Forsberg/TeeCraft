@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 function App() {
     const [products, setProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
+    const [cart, setCart] = useState([])
 
     useEffect(() => {
         fetch("https://localhost:7042/api/Products?page=1&pageSize=10")
@@ -11,6 +12,10 @@ function App() {
                 setProducts(data.items)
             })
     }, [])
+    function addToCart(product) {
+        setCart([...cart, product])
+        alert(product.name + " added to cart")
+    }
 
     if (selectedProduct) {
         return (
@@ -25,6 +30,10 @@ function App() {
                     <h2 style={{ color: "white", cursor: "pointer" }} onClick={() => setSelectedProduct(null)}>
                         TeeCraft
                     </h2>
+
+                    <span style={{ color: "white" }}>
+                        Cart ({cart.length})
+                    </span>
 
                     <button
                         onClick={() => setSelectedProduct(null)}
@@ -85,7 +94,9 @@ function App() {
                             </div>
                         ))}
 
-                        <button style={{
+                        <button
+                            onClick={() => addToCart(selectedProduct)}
+                            style={{
                             marginTop: "20px",
                             padding: "15px 30px",
                             backgroundColor: "black",
@@ -116,7 +127,7 @@ function App() {
                 <div>
                     <span style={{ marginRight: "20px" }}>Home</span>
                     <span style={{ marginRight: "20px" }}>Products</span>
-                    <span>Cart</span>
+                    <span>Cart ({cart.length})</span>
                 </div>
             </nav>
 
