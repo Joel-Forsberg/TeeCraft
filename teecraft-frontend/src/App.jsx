@@ -18,6 +18,10 @@ function App() {
         alert(product.name + " added to cart")
     }
 
+    function removeFromCart(indexToRemove) {
+        setCart(cart.filter((item, index) => index !== indexToRemove))
+    }
+
     if (showCart) {
         return (
             <div>
@@ -78,7 +82,21 @@ function App() {
                                 <h3>{item.name}</h3>
                                 <p>{item.description}</p>
                                 <h2>{item.basePrice} kr</h2>
+
+                                <button
+                                    onClick={() => removeFromCart(index)}
+                                    style={{
+                                        padding: "10px 20px",
+                                        backgroundColor: "red",
+                                        color: "white",
+                                        border: "none",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    Remove
+                                </button>
                             </div>
+
                         ))
                     )}
                 </section>
