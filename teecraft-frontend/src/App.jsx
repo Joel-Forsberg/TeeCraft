@@ -106,6 +106,9 @@ function App() {
                     )}
 
                 </section>
+            </div>
+        )
+    }
 
     if (selectedProduct) {
         return (
