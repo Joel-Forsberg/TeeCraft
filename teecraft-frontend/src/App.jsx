@@ -56,11 +56,15 @@ function App() {
                     justifyContent: "center",
                     alignItems: "flex-start"
                 }}>
-                    <div style={{
-                        width: "400px",
-                        height: "450px",
-                        backgroundColor: "#eee"
-                    }}></div>
+                    <img
+                        src={selectedProduct.imageUrl}
+                        alt={selectedProduct.name}
+                        style={{
+                            width: "45%",
+                            height: "500px",
+                            objectFit: "cover"
+                        }}
+                    />
 
                     <div style={{ maxWidth: "450px" }}>
                         <h1 style={{ fontSize: "42px" }}>{selectedProduct.name}</h1>
@@ -176,11 +180,16 @@ function App() {
                                 textAlign: "center"
                             }}
                         >
-                            <div style={{
-                                height: "220px",
-                                backgroundColor: "#eee",
-                                marginBottom: "15px"
-                            }}></div>
+                            <img
+                                src={product.imageUrl}
+                                alt={product.name}
+                                style={{
+                                    width: "100%",
+                                    height: "220px",
+                                    objectFit: "cover",
+                                    marginBottom: "15px"
+                                }}
+                            />
 
                             <h3>{product.name}</h3>
                             <p>{product.description}</p>
