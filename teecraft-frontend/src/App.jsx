@@ -22,6 +22,8 @@ function App() {
         setCart(cart.filter((item, index) => index !== indexToRemove))
     }
 
+    const cartTotal = cart.reduce((sum, item) => sum + item.basePrice, 0)
+
     if (showCart) {
         return (
             <div>
@@ -65,44 +67,45 @@ function App() {
                         Back to products
                     </button>
 
-                    <h1>Your Cart</h1>
-
                     {cart.length === 0 ? (
                         <p>Your cart is empty.</p>
                     ) : (
-                        cart.map((item, index) => (
-                            <div
-                                key={index}
-                                style={{
-                                    border: "1px solid #ddd",
-                                    padding: "20px",
-                                    marginBottom: "20px"
-                                }}
-                            >
-                                <h3>{item.name}</h3>
-                                <p>{item.description}</p>
-                                <h2>{item.basePrice} kr</h2>
-
-                                <button
-                                    onClick={() => removeFromCart(index)}
+                        <>
+                            {cart.map((item, index) => (
+                                <div
+                                    key={index}
                                     style={{
-                                        padding: "10px 20px",
-                                        backgroundColor: "red",
-                                        color: "white",
-                                        border: "none",
-                                        cursor: "pointer"
+                                        border: "1px solid #ddd",
+                                        padding: "20px",
+                                        marginBottom: "20px"
                                     }}
                                 >
-                                    Remove
-                                </button>
-                            </div>
+                                    <h3>{item.name}</h3>
+                                    <p>{item.description}</p>
+                                    <h2>{item.basePrice} kr</h2>
 
-                        ))
+                                    <button
+                                        onClick={() => removeFromCart(index)}
+                                        style={{
+                                            padding: "10px 20px",
+                                            backgroundColor: "red",
+                                            color: "white",
+                                            border: "none",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+
+                            <h2 style={{ marginTop: "30px" }}>
+                                Total: {cartTotal} kr
+                            </h2>
+                        </>
                     )}
+
                 </section>
-            </div>
-        )
-    }
 
     if (selectedProduct) {
         return (
