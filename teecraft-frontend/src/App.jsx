@@ -31,7 +31,7 @@ function App() {
                     }}
                 >
                     <h2
-                        style={{ cursor: "pointer" }}
+                        style={{ cursor: "pointer", color: "white" }}
                         onClick={() => setShowCart(false)}
                     >
                         TeeCraft
@@ -47,6 +47,20 @@ function App() {
                         margin: "0 auto"
                     }}
                 >
+                    <button
+                        onClick={() => setShowCart(false)}
+                        style={{
+                            padding: "10px 20px",
+                            backgroundColor: "black",
+                            color: "white",
+                            border: "none",
+                            cursor: "pointer",
+                            marginBottom: "20px"
+                        }}
+                    >
+                        Back to products
+                    </button>
+
                     <h1>Your Cart</h1>
 
                     {cart.length === 0 ? (
