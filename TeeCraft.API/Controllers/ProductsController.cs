@@ -68,6 +68,7 @@ public class ProductsController : ControllerBase
                 Name = p.Name,
                 Description = p.Description,
                 BasePrice = p.BasePrice,
+                ImageUrl = p.ImageUrl,
                 CategoryId = p.CategoryId,
                 CategoryName = p.Category.Name,
 
@@ -122,6 +123,7 @@ public class ProductsController : ControllerBase
               Name = p.Name,
               Description = p.Description,
               BasePrice = p.BasePrice,
+              ImageUrl = p.ImageUrl,
               CategoryId = p.CategoryId,
               CategoryName = p.Category.Name,
 
@@ -167,6 +169,7 @@ public class ProductsController : ControllerBase
             Name = dto.Name,
             Description = dto.Description,
             BasePrice = dto.BasePrice,
+            ImageUrl = dto.ImageUrl,
             CategoryId = dto.CategoryId
         };
 
@@ -191,6 +194,7 @@ public class ProductsController : ControllerBase
         product.Name = dto.Name;
         product.Description = dto.Description;
         product.BasePrice = dto.BasePrice;
+        product.ImageUrl = dto.ImageUrl;
         product.CategoryId = dto.CategoryId;
 
         await _context.SaveChangesAsync();
@@ -285,6 +289,7 @@ public class ProductsController : ControllerBase
                Name = p.Name,
                Description = p.Description,
                BasePrice = p.BasePrice,
+               ImageUrl = p.ImageUrl,
                CategoryId = p.CategoryId,
                CategoryName = p.Category.Name,
 

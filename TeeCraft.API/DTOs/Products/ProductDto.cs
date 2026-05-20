@@ -10,10 +10,15 @@ public class ProductDto
 
     public decimal BasePrice { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public int CategoryId { get; set; }
 
     public string CategoryName { get; set; } = string.Empty;
+    
     public double AverageRating { get; set; }
+    
     public int ReviewCount { get; set; }
+    
     public List<ProductVariantDto> ProductVariants { get; set; } = new();
 }

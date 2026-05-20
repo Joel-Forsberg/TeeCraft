@@ -8,5 +8,7 @@ public class CreateProductDto
 
     public decimal BasePrice { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public int CategoryId { get; set; }
 }
