@@ -4,6 +4,7 @@ function App() {
     const [products, setProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [cart, setCart] = useState([])
+    const [showCart, setShowCart] = useState(false)
 
     useEffect(() => {
         fetch("https://localhost:7042/api/Products?page=1&pageSize=10")
@@ -15,6 +16,60 @@ function App() {
     function addToCart(product) {
         setCart([...cart, product])
         alert(product.name + " added to cart")
+    }
+
+    if (showCart) {
+        return (
+            <div>
+                <nav
+                    style={{
+                        backgroundColor: "#111",
+                        color: "white",
+                        padding: "20px",
+                        display: "flex",
+                        justifyContent: "space-between"
+                    }}
+                >
+                    <h2
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setShowCart(false)}
+                    >
+                        TeeCraft
+                    </h2>
+
+                    <span>Cart ({cart.length})</span>
+                </nav>
+
+                <section
+                    style={{
+                        padding: "40px",
+                        maxWidth: "900px",
+                        margin: "0 auto"
+                    }}
+                >
+                    <h1>Your Cart</h1>
+
+                    {cart.length === 0 ? (
+                        <p>Your cart is empty.</p>
+                    ) : (
+                        cart.map((item, index) => (
+                            <div
+                                key={index}
+                                style={{
+                                    border: "1px solid #ddd",
+                                    padding: "20px",
+                                    marginBottom: "20px"
+                                }}
+                            >
+                                <h3>{item.name}</h3>
+                                <p>{item.description}</p>
+                                <h2>{item.basePrice} kr</h2>
+                            </div>
+                        ))
+                    )}
+                </section>
+            </div>
+        )
     }
 
     if (selectedProduct) {
@@ -131,7 +186,12 @@ function App() {
                 <div>
                     <span style={{ marginRight: "20px" }}>Home</span>
                     <span style={{ marginRight: "20px" }}>Products</span>
-                    <span>Cart ({cart.length})</span>
+                    <span
+                        onClick={() => setShowCart(true)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        Cart ({cart.length})
+                    </span>
                 </div>
             </nav>
 
