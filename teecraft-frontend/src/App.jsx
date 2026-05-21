@@ -1,5 +1,9 @@
 ﻿import { useEffect, useState } from "react"
-
+import { useEffect, useState } from "react"
+import blackTee from "./assets/black-tee.png"
+import whiteTee from "./assets/white-tee.png"
+import navyTee from "./assets/navy-tee.png"
+import redTee from "./assets/red-tee.png"
 function App() {
     const [products, setProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
@@ -15,6 +19,8 @@ function App() {
     const [customerAddress, setCustomerAddress] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedColor, setSelectedColor] = useState("")
+    const [selectedSize, setSelectedSize] = useState("")
+    const [selectedVariantId, setSelectedVariantId] = useState("")
 
     useEffect(() => {
         fetch("https://localhost:7042/api/Products?page=1&pageSize=10")
@@ -349,7 +355,15 @@ function App() {
                     alignItems: "flex-start"
                 }}>
                     <img
-                        src={selectedProduct.imageUrl}
+                        src={
+                            selectedProduct.name === "Black Tee"
+                                ? blackTee
+                                : selectedProduct.name === "White Tee"
+                                    ? whiteTee
+                                    : selectedProduct.name === "Navy Blue Tee"
+                                        ? navyTee
+                                        : redTee
+                        }
                         alt={selectedProduct.name}
                         style={{
                             width: "45%",
@@ -373,6 +387,27 @@ function App() {
 
                         <h3>Variants</h3>
 
+                        <select
+                            value={selectedVariantId}
+                            onChange={(e) => setSelectedVariantId(e.target.value)}
+                            style={{
+                                padding: "12px",
+                                marginBottom: "20px",
+                                fontSize: "16px"
+                            }}
+                        >
+                            <option value="">Select variant</option>
+
+                            {selectedProduct.productVariants.map(variant => (
+                                <option
+                                    key={variant.productVariantId}
+                                    value={variant.productVariantId}
+                                >
+                                    {variant.color} - {variant.size} - {variant.fit} - {variant.price} kr
+                                </option>
+                            ))}
+                        </select>
+
                         {selectedProduct.productVariants.map(variant => (
                             <div
                                 key={variant.productVariantId}
@@ -389,18 +424,32 @@ function App() {
                                 <p>Price: {variant.price} kr</p>
                             </div>
                         ))}
-
                         <button
-                            onClick={() => addToCart(selectedProduct)}
+                            onClick={() => {
+                                if (!selectedVariantId) {
+                                    alert("Please select a variant first.")
+                                    return
+                                }
+
+                                const selectedVariant = selectedProduct.productVariants.find(
+                                    variant => variant.productVariantId === Number(selectedVariantId)
+                                )
+
+                                addToCart({
+                                    ...selectedProduct,
+                                    selectedVariant: selectedVariant
+                                })
+                            }}
                             style={{
-                            marginTop: "20px",
-                            padding: "15px 30px",
-                            backgroundColor: "black",
-                            color: "white",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "16px"
-                        }}>
+                                marginTop: "20px",
+                                padding: "15px 30px",
+                                backgroundColor: "black",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "16px"
+                            }}
+                        >
                             Add to Cart
                         </button>
                     </div>
@@ -512,6 +561,22 @@ function App() {
                     <option value="Navy Blue">Navy Blue</option>
                     <option value="Red">Red</option>
                 </select>
+                <select
+                    value={selectedSize}
+                    onChange={(e) => setSelectedSize(e.target.value)}
+                    style={{
+                        padding: "12px",
+                        marginBottom: "30px",
+                        marginLeft: "10px",
+                        fontSize: "16px"
+                    }}
+                >
+                    <option value="">All Sizes</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
 
                 <div style={{
                     display: "flex",
@@ -527,6 +592,12 @@ function App() {
                                 product.productVariants.some(
                                     variant => variant.color === selectedColor
                                 )
+                            ) &&
+                            (
+                                selectedSize === "" ||
+                                product.productVariants.some(
+                                    variant => variant.size === selectedSize
+                                )
                             )
                         )
                         .map(product => (
@@ -539,8 +610,16 @@ function App() {
                                 textAlign: "center"
                             }}
                         >
-                            <img
-                                src={product.imageUrl}
+                                <img
+                                    src={
+                                        product.name === "Black Tee"
+                                            ? blackTee
+                                            : product.name === "White Tee"
+                                                ? whiteTee
+                                                : product.name === "Navy Blue Tee"
+                                                    ? navyTee
+                                                    : redTee
+                                    }
                                 alt={product.name}
                                 style={{
                                     width: "100%",

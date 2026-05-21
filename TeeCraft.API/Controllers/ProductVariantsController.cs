@@ -116,4 +116,20 @@ public class ProductVariantsController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteProductVariant(int id)
+    {
+        var variant = await _context.ProductVariants.FindAsync(id);
+
+        if (variant == null)
+        {
+            return NotFound();
+        }
+
+        _context.ProductVariants.Remove(variant);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
