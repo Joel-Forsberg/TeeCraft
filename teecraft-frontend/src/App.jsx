@@ -33,11 +33,15 @@ function App() {
         localStorage.setItem("cart", JSON.stringify(cart))
     }, [cart])
     function addToCart(product) {
-        const existingItem = cart.find(item => item.productId === product.productId)
+        const existingItem = cart.find(item =>
+            item.productId === product.productId &&
+            item.selectedVariant?.productVariantId === product.selectedVariant?.productVariantId
+        )
 
         if (existingItem) {
             setCart(cart.map(item =>
-                item.productId === product.productId
+                item.productId === product.productId &&
+                    item.selectedVariant?.productVariantId === product.selectedVariant?.productVariantId
                     ? { ...item, quantity: item.quantity + 1 }
                     : item
             ))
@@ -147,6 +151,13 @@ function App() {
                                     <h3>{item.name}</h3>
                                     <p>{item.description}</p>
                                     <h2>{item.basePrice} kr</h2>
+                                    {item.selectedVariant && (
+                                        <div>
+                                            <p>Color: {item.selectedVariant.color}</p>
+                                            <p>Size: {item.selectedVariant.size}</p>
+                                            <p>Fit: {item.selectedVariant.fit}</p>
+                                        </div>
+                                    )}
                                     <div style={{ marginBottom: "10px" }}>
                                         <button
                                             onClick={() => decreaseQuantity(item.productId)}
