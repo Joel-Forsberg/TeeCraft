@@ -14,15 +14,44 @@ function App() {
             })
     }, [])
     function addToCart(product) {
-        setCart([...cart, product])
+        const existingItem = cart.find(item => item.productId === product.productId)
+
+        if (existingItem) {
+            setCart(cart.map(item =>
+                item.productId === product.productId
+                    ? { ...item, quantity: item.quantity + 1 }
+                    : item
+            ))
+        } else {
+            setCart([...cart, { ...product, quantity: 1 }])
+        }
+
         alert(product.name + " added to cart")
     }
 
     function removeFromCart(indexToRemove) {
         setCart(cart.filter((item, index) => index !== indexToRemove))
+
+    }
+    function increaseQuantity(productId) {
+        setCart(cart.map(item =>
+            item.productId === productId
+                ? { ...item, quantity: item.quantity + 1 }
+                : item
+        ))
     }
 
-    const cartTotal = cart.reduce((sum, item) => sum + item.basePrice, 0)
+    function decreaseQuantity(productId) {
+        setCart(cart
+            .map(item =>
+                item.productId === productId
+                    ? { ...item, quantity: item.quantity - 1 }
+                    : item
+            )
+            .filter(item => item.quantity > 0)
+        )
+    }
+    const cartTotal = cart.reduce((sum, item) => sum + item.basePrice * item.quantity, 0)
 
     if (showCart) {
         return (
@@ -83,6 +112,31 @@ function App() {
                                     <h3>{item.name}</h3>
                                     <p>{item.description}</p>
                                     <h2>{item.basePrice} kr</h2>
+                                    <div style={{ marginBottom: "10px" }}>
+                                        <button
+                                            onClick={() => decreaseQuantity(item.productId)}
+                                            style={{
+                                                padding: "5px 10px",
+                                                marginRight: "10px",
+                                                cursor: "pointer"
+                                            }}
+                                        >
+                                            -
+                                        </button>
+
+                                        <span>Quantity: {item.quantity}</span>
+
+                                        <button
+                                            onClick={() => increaseQuantity(item.productId)}
+                                            style={{
+                                                padding: "5px 10px",
+                                                marginLeft: "10px",
+                                                cursor: "pointer"
+                                            }}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
 
                                     <button
                                         onClick={() => removeFromCart(index)}
