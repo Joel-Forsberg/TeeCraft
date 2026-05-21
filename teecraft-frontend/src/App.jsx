@@ -9,6 +9,7 @@ function App() {
         return savedCart ? JSON.parse(savedCart) : []
     })
     const [showCart, setShowCart] = useState(false)
+    const [showCheckout, setShowCheckout] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
@@ -180,7 +181,24 @@ function App() {
 
                             <h2 style={{ marginTop: "30px" }}>
                                 Total: {cartTotal} kr
-                            </h2>
+                                </h2>
+                                <button
+                                    onClick={() => {
+                                        setShowCart(false)
+                                        setShowCheckout(true)
+                                    }}
+                                    style={{
+                                        marginTop: "20px",
+                                        padding: "15px 30px",
+                                        backgroundColor: "black",
+                                        color: "white",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        fontSize: "16px"
+                                    }}
+                                >
+                                    Proceed to Checkout
+                                </button>
                         </>
                     )}
 
@@ -188,7 +206,63 @@ function App() {
             </div>
         )
     }
+    if (showCheckout) {
+        return (
+            <div>
+                <nav style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
+                    <h2>TeeCraft</h2>
 
+                    <span
+                        onClick={() => {
+                            setShowCheckout(false)
+                            setShowCart(true)
+                        }}
+                        style={{ cursor: "pointer" }}
+                    >
+                        Back to Cart
+                    </span>
+                </nav>
+
+                <section style={{
+                    padding: "80px",
+                    textAlign: "center"
+                }}>
+                    <h1>Checkout</h1>
+
+                    <p style={{ marginTop: "20px" }}>
+                        Total Amount: {cartTotal} kr
+                    </p>
+                        <button
+                            onClick={() => {
+                                alert("Purchase completed!")
+                                setCart([])
+                                localStorage.removeItem("cart")
+                                setShowCheckout(false)
+                                setShowCart(false)
+                                setSelectedProduct(null)
+                            }}
+                            style={{
+                                marginTop: "30px",
+                                padding: "15px 30px",
+                                backgroundColor: "green",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "16px"
+                            }}
+                        >
+                            Complete Purchase
+                        </button>
+                </section>
+            </div>
+        )
+    }
     if (selectedProduct) {
         return (
             <div>
