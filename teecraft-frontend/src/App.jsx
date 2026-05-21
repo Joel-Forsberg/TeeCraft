@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
 
 function App() {
     const [products, setProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
     const [cart, setCart] = useState([])
     const [showCart, setShowCart] = useState(false)
+    const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
         fetch("https://localhost:7042/api/Products?page=1&pageSize=10")
@@ -72,8 +73,24 @@ function App() {
                         TeeCraft
                     </h2>
 
-                    <span>Cart ({cart.length})</span>
-                </nav>
+                    <div>
+                        <span
+                            onClick={() => {
+                                setShowCart(false)
+                                setSelectedProduct(null)
+                            }}
+                            style={{
+                                marginRight: "20px",
+                                cursor: "pointer"
+                            }}
+                        >
+                            Home
+                        </span>
+
+                        <span style={{ cursor: "pointer" }}>
+                            Cart ({cart.length})
+                        </span>
+                    </div>                </nav>
 
                 <section
                     style={{
@@ -269,14 +286,47 @@ function App() {
 
     return (
         <div>
-            <nav style={{
-                backgroundColor: "#111",
-                color: "white",
-                padding: "20px",
-                display: "flex",
-                justifyContent: "space-between"
-            }}>
+            <nav
+                style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                }}
+            >
                 <h2 style={{ color: "white" }}>TeeCraft</h2>
+
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        border: "1px solid #777",
+                        padding: "8px 12px",
+                        width: "320px",
+                        backgroundColor: "transparent",
+                        marginLeft: "120px"
+                    }}
+                >
+                    <span style={{ color: "white", fontSize: "16px" }}>⌕</span>
+
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            width: "100%",
+                            backgroundColor: "transparent",
+                            border: "none",
+                            color: "white",
+                            outline: "none",
+                            fontSize: "14px"
+                        }}
+                    />
+                </div>
 
                 <div>
                     <span style={{ marginRight: "20px" }}>Home</span>
@@ -290,22 +340,25 @@ function App() {
                 </div>
             </nav>
 
-            <section style={{
-                padding: "80px",
-                textAlign: "center"
-            }}>
+            <section
+                style={{
+                    padding: "80px",
+                    textAlign: "center"
+                }}
+            >
                 <h1 style={{ fontSize: "60px" }}>Premium T-Shirts</h1>
                 <p style={{ fontSize: "20px" }}>T-shirts for modern fashion.</p>
-
-                <button style={{
-                    marginTop: "20px",
-                    padding: "15px 30px",
-                    backgroundColor: "black",
-                    color: "white",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "16px"
-                }}>
+                <button
+                    style={{
+                        marginTop: "20px",
+                        padding: "15px 30px",
+                        backgroundColor: "black",
+                        color: "white",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "16px"
+                    }}
+                >
                     Shop Now
                 </button>
             </section>
@@ -325,7 +378,11 @@ function App() {
                     justifyContent: "center",
                     flexWrap: "wrap"
                 }}>
-                    {products.map(product => (
+                    {products
+                        .filter(product =>
+                            product.name.toLowerCase().includes(searchTerm.toLowerCase())
+                        )
+                        .map(product => (
                         <div
                             key={product.productId}
                             style={{
