@@ -124,7 +124,10 @@ function App() {
                         TeeCraft
                     </h2>
 
-                    <span style={{ color: "white" }}>
+                    <span
+                        onClick={() => setShowCart(true)}
+                        style={{ color: "white", cursor: "pointer" }}
+                    >
                         Cart ({cart.length})
                     </span>
 
