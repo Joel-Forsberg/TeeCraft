@@ -14,6 +14,7 @@ function App() {
     const [customerEmail, setCustomerEmail] = useState("")
     const [customerAddress, setCustomerAddress] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
+    const [selectedColor, setSelectedColor] = useState("")
 
     useEffect(() => {
         fetch("https://localhost:7042/api/Products?page=1&pageSize=10")
@@ -496,6 +497,22 @@ function App() {
                     Featured Products
                 </h2>
 
+                <select
+                    value={selectedColor}
+                    onChange={(e) => setSelectedColor(e.target.value)}
+                    style={{
+                        padding: "12px",
+                        marginBottom: "30px",
+                        fontSize: "16px"
+                    }}
+                >
+                    <option value="">All Colors</option>
+                    <option value="Black">Black</option>
+                    <option value="White">White</option>
+                    <option value="Navy Blue">Navy Blue</option>
+                    <option value="Red">Red</option>
+                </select>
+
                 <div style={{
                     display: "flex",
                     gap: "25px",
@@ -504,7 +521,13 @@ function App() {
                 }}>
                     {products
                         .filter(product =>
-                            product.name.toLowerCase().includes(searchTerm.toLowerCase())
+                            product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                            (
+                                selectedColor === "" ||
+                                product.productVariants.some(
+                                    variant => variant.color === selectedColor
+                                )
+                            )
                         )
                         .map(product => (
                         <div
