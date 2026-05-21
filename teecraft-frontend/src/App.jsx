@@ -1,5 +1,4 @@
 ﻿import { useEffect, useState } from "react"
-import { useEffect, useState } from "react"
 import blackTee from "./assets/black-tee.png"
 import whiteTee from "./assets/white-tee.png"
 import navyTee from "./assets/navy-tee.png"
