@@ -10,6 +10,9 @@ function App() {
     })
     const [showCart, setShowCart] = useState(false)
     const [showCheckout, setShowCheckout] = useState(false)
+    const [customerName, setCustomerName] = useState("")
+    const [customerEmail, setCustomerEmail] = useState("")
+    const [customerAddress, setCustomerAddress] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
@@ -238,24 +241,63 @@ function App() {
                     <p style={{ marginTop: "20px" }}>
                         Total Amount: {cartTotal} kr
                     </p>
+                    <div
+                        style={{
+                            marginTop: "30px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "15px",
+                            maxWidth: "400px",
+                            marginLeft: "auto",
+                            marginRight: "auto"
+                        }}
+                    >
+                        <input
+                            type="text"
+                            placeholder="Full name"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            value={customerEmail}
+                            onChange={(e) => setCustomerEmail(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <input
+                            type="text"
+                            placeholder="Address"
+                            value={customerAddress}
+                            onChange={(e) => setCustomerAddress(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+                    </div>
                         <button
-                            onClick={() => {
-                                alert("Purchase completed!")
-                                setCart([])
-                                localStorage.removeItem("cart")
-                                setShowCheckout(false)
-                                setShowCart(false)
-                                setSelectedProduct(null)
-                            }}
-                            style={{
-                                marginTop: "30px",
-                                padding: "15px 30px",
-                                backgroundColor: "green",
-                                color: "white",
-                                border: "none",
-                                cursor: "pointer",
-                                fontSize: "16px"
-                            }}
+                        onClick={() => {
+                            if (!customerName || !customerEmail || !customerAddress) {
+                                alert("Please fill in all checkout fields.")
+                                return
+                            }
+
+                            if (!customerEmail.includes("@")) {
+                                alert("Please enter a valid email address.")
+                                return
+                            }
+
+                            alert("Purchase completed!")
+                            setCart([])
+                            localStorage.removeItem("cart")
+                            setCustomerName("")
+                            setCustomerEmail("")
+                            setCustomerAddress("")
+                            setShowCheckout(false)
+                            setShowCart(false)
+                            setSelectedProduct(null)
+                        }}
                         >
                             Complete Purchase
                         </button>
