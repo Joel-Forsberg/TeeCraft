@@ -3,7 +3,11 @@
 function App() {
     const [products, setProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
-    const [cart, setCart] = useState([])
+    const [cart, setCart] = useState(() => {
+        const savedCart = localStorage.getItem("cart")
+
+        return savedCart ? JSON.parse(savedCart) : []
+    })
     const [showCart, setShowCart] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
 
@@ -14,6 +18,10 @@ function App() {
                 setProducts(data.items)
             })
     }, [])
+
+    useEffect(() => {
+        localStorage.setItem("cart", JSON.stringify(cart))
+    }, [cart])
     function addToCart(product) {
         const existingItem = cart.find(item => item.productId === product.productId)
 
