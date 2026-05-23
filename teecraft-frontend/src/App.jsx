@@ -37,6 +37,24 @@ function App() {
             item.productId === product.productId &&
             item.selectedVariant?.productVariantId === product.selectedVariant?.productVariantId
         )
+        const currentQuantity = existingItem ? existingItem.quantity : 0
+
+        if (product.selectedVariant.stockQuantity <= currentQuantity) {
+            alert("Not enough stock available.")
+            return
+        }
+
+        fetch("https://localhost:7042/api/Cart/items", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                customerId: 1,
+                productVariantId: product.selectedVariant.productVariantId,
+                quantity: 1
+            })
+        })
 
         if (existingItem) {
             setCart(cart.map(item =>
@@ -56,12 +74,22 @@ function App() {
         setCart(cart.filter((item, index) => index !== indexToRemove))
 
     }
-    function increaseQuantity(productId) {
-        setCart(cart.map(item =>
-            item.productId === productId
-                ? { ...item, quantity: item.quantity + 1 }
-                : item
-        ))
+    function increaseQuantity(productId, productVariantId) {
+        setCart(cart.map(item => {
+            if (
+                item.productId === productId &&
+                item.selectedVariant?.productVariantId === productVariantId
+            ) {
+                if (item.quantity >= item.selectedVariant.stockQuantity) {
+                    alert("Not enough stock available.")
+                    return item
+                }
+
+                return { ...item, quantity: item.quantity + 1 }
+            }
+
+            return item
+        }))
     }
 
     function decreaseQuantity(productId) {
@@ -173,7 +201,7 @@ function App() {
                                         <span>Quantity: {item.quantity}</span>
 
                                         <button
-                                            onClick={() => increaseQuantity(item.productId)}
+                                            onClick={() => increaseQuantity(item.productId, item.selectedVariant.productVariantId)}
                                             style={{
                                                 padding: "5px 10px",
                                                 marginLeft: "10px",
@@ -293,8 +321,8 @@ function App() {
                             style={{ padding: "12px", fontSize: "16px" }}
                         />
                     </div>
-                        <button
-                        onClick={() => {
+                    <button
+                        onClick={async () => {
                             if (!customerName || !customerEmail || !customerAddress) {
                                 alert("Please fill in all checkout fields.")
                                 return
@@ -303,6 +331,29 @@ function App() {
                             if (!customerEmail.includes("@")) {
                                 alert("Please enter a valid email address.")
                                 return
+                            }
+                            for (const item of cart) {
+                                console.log(item)
+                            }
+                            for (const item of cart) {
+                                const variantId = item.selectedVariant.productVariantId
+                                const newStockQuantity = item.selectedVariant.stockQuantity - item.quantity
+
+                                const response = await fetch(`https://localhost:7042/api/ProductVariants/${variantId}/stock`, {
+                                    method: "PUT",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                                    },
+                                    body: JSON.stringify({
+                                        stockQuantity: newStockQuantity
+                                    })
+                                })
+
+                                if (!response.ok) {
+                                    alert("Stock update failed.")
+                                    return
+                                }
                             }
 
                             alert("Purchase completed!")
@@ -315,13 +366,27 @@ function App() {
                             setShowCart(false)
                             setSelectedProduct(null)
                         }}
-                        >
-                            Complete Purchase
-                        </button>
+                        style={{
+                            marginTop: "30px",
+                            padding: "15px 30px",
+                            backgroundColor: "green",
+                            color: "white",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "16px"
+                        }}
+                    >
+                        Complete Purchase
+                    </button>
                 </section>
             </div>
         )
     }
+
+    const selectedVariant = selectedProduct?.productVariants.find(
+        variant => variant.productVariantId === Number(selectedVariantId)
+    )
+
     if (selectedProduct) {
         return (
             <div>
@@ -418,6 +483,11 @@ function App() {
                             ))}
                         </select>
 
+                        {selectedVariant && (
+                            <p>
+                                Stock available: {selectedVariant.stockQuantity}
+                            </p>
+                        )}
                         {selectedProduct.productVariants.map(variant => (
                             <div
                                 key={variant.productVariantId}

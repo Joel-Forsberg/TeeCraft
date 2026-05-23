@@ -19,19 +19,35 @@ public class CartController : ControllerBase
     }
 
     [HttpGet("{customerId}")]
-    public async Task<ActionResult<Cart>> GetCart(int customerId)
+    public async Task<IActionResult> GetCart(int customerId)
     {
         var cart = await _context.Carts
-            .Include(c => c.CartItems)
-            .ThenInclude(ci => ci.ProductVariant)
-            .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+        .Include(c => c.CartItems)
+        .ThenInclude(ci => ci.ProductVariant)
+            .ThenInclude(pv => pv.Product)
+        .FirstOrDefaultAsync(c => c.CustomerId == customerId);
 
         if (cart == null)
         {
             return NotFound("Cart not found.");
         }
 
-        return cart;
+        return Ok(new
+        {
+            cart.CartId,
+            cart.CustomerId,
+            Items = cart.CartItems.Select(item => new
+            {
+                item.CartItemId,
+                item.ProductVariantId,
+                item.Quantity,
+                ProductName = item.ProductVariant.Product.Name,
+                Color = item.ProductVariant.Color,
+                Size = item.ProductVariant.Size,
+                Fit = item.ProductVariant.Fit,
+                Price = item.ProductVariant.Price
+            })
+        });
     }
 
     [HttpPost("items")]
