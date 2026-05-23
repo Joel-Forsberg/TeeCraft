@@ -3,40 +3,123 @@ import blackTee from "./assets/black-tee.png"
 import whiteTee from "./assets/white-tee.png"
 import navyTee from "./assets/navy-tee.png"
 import redTee from "./assets/red-tee.png"
+
 function App() {
     const [products, setProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
+
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem("cart")
-
         return savedCart ? JSON.parse(savedCart) : []
     })
+
     const [showCart, setShowCart] = useState(false)
     const [showCheckout, setShowCheckout] = useState(false)
+    const [showLogin, setShowLogin] = useState(false)
+    const [showRegister, setShowRegister] = useState(false)
+
     const [customerName, setCustomerName] = useState("")
     const [customerEmail, setCustomerEmail] = useState("")
     const [customerAddress, setCustomerAddress] = useState("")
+
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedColor, setSelectedColor] = useState("")
     const [selectedSize, setSelectedSize] = useState("")
     const [selectedVariantId, setSelectedVariantId] = useState("")
 
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [firstName, setFirstName] = useState("")
+    const [lastName, setLastName] = useState("")
+    const [phoneNumber, setPhoneNumber] = useState("")
+
+    const [token, setToken] = useState(localStorage.getItem("token") || "")
+
     useEffect(() => {
-        fetch("https://localhost:7042/api/Products?page=1&pageSize=10")
-            .then(response => response.json())
-            .then(data => {
-                setProducts(data.items)
-            })
+        fetchProducts()
     }, [])
 
     useEffect(() => {
         localStorage.setItem("cart", JSON.stringify(cart))
     }, [cart])
-    function addToCart(product) {
+
+    function fetchProducts() {
+        fetch("https://localhost:7042/api/Products?page=1&pageSize=10")
+            .then(response => response.json())
+            .then(data => {
+                setProducts(data.items)
+            })
+    }
+
+    const loginUser = async () => {
+        const response = await fetch("https://localhost:7042/api/Auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email,
+                password
+            })
+        })
+
+        if (!response.ok) {
+            alert("Login failed")
+            return
+        }
+
+        const data = await response.json()
+
+        localStorage.setItem("token", data.token)
+        setToken(data.token)
+
+        alert("Login successful!")
+        setShowLogin(false)
+    }
+
+    const registerUser = async () => {
+        const response = await fetch("https://localhost:7042/api/Auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email,
+                password,
+                firstName,
+                lastName,
+                phoneNumber
+            })
+        })
+
+        if (!response.ok) {
+            alert("Register failed")
+            return
+        }
+
+        alert("User registered successfully!")
+        setShowRegister(false)
+        setShowLogin(true)
+    }
+
+    function logoutUser() {
+        localStorage.removeItem("token")
+        setToken("")
+        alert("Logged out")
+    }
+
+    async function addToCart(product) {
+        if (!token) {
+            alert("Please login before adding products to cart.")
+            setShowLogin(true)
+            return
+        }
+
         const existingItem = cart.find(item =>
             item.productId === product.productId &&
             item.selectedVariant?.productVariantId === product.selectedVariant?.productVariantId
         )
+
         const currentQuantity = existingItem ? existingItem.quantity : 0
 
         if (product.selectedVariant.stockQuantity <= currentQuantity) {
@@ -44,10 +127,11 @@ function App() {
             return
         }
 
-        fetch("https://localhost:7042/api/Cart/items", {
+        const response = await fetch("https://localhost:7042/api/Cart/items", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
                 customerId: 1,
@@ -55,6 +139,11 @@ function App() {
                 quantity: 1
             })
         })
+
+        if (!response.ok) {
+            alert("Could not add item to backend cart.")
+            return
+        }
 
         if (existingItem) {
             setCart(cart.map(item =>
@@ -72,8 +161,8 @@ function App() {
 
     function removeFromCart(indexToRemove) {
         setCart(cart.filter((item, index) => index !== indexToRemove))
-
     }
+
     function increaseQuantity(productId, productVariantId) {
         setCart(cart.map(item => {
             if (
@@ -92,30 +181,212 @@ function App() {
         }))
     }
 
-    function decreaseQuantity(productId) {
+    function decreaseQuantity(productId, productVariantId) {
         setCart(cart
             .map(item =>
-                item.productId === productId
+                item.productId === productId &&
+                    item.selectedVariant?.productVariantId === productVariantId
                     ? { ...item, quantity: item.quantity - 1 }
                     : item
             )
             .filter(item => item.quantity > 0)
         )
     }
-    const cartTotal = cart.reduce((sum, item) => sum + item.basePrice * item.quantity, 0)
+
+    const cartTotal = cart.reduce(
+        (sum, item) => sum + (item.selectedVariant?.price ?? item.basePrice) * item.quantity,
+        0
+    )
+
+    const selectedVariant = selectedProduct?.productVariants.find(
+        variant => variant.productVariantId === Number(selectedVariantId)
+    )
+
+    if (showLogin) {
+        return (
+            <div>
+                <nav style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
+                    <h2>TeeCraft</h2>
+
+                    <span
+                        onClick={() => setShowLogin(false)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        Home
+                    </span>
+                </nav>
+
+                <section style={{ padding: "80px", textAlign: "center" }}>
+                    <h1>Login</h1>
+
+                    <div style={{
+                        marginTop: "30px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "15px",
+                        maxWidth: "400px",
+                        marginLeft: "auto",
+                        marginRight: "auto"
+                    }}>
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <button
+                            onClick={loginUser}
+                            style={{
+                                padding: "15px 30px",
+                                backgroundColor: "black",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "16px"
+                            }}
+                        >
+                            Login
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setShowLogin(false)
+                                setShowRegister(true)
+                            }}
+                            style={{
+                                padding: "15px 30px",
+                                backgroundColor: "white",
+                                color: "black",
+                                border: "1px solid black",
+                                cursor: "pointer",
+                                fontSize: "16px"
+                            }}
+                        >
+                            Create account
+                        </button>
+                    </div>
+                </section>
+            </div>
+        )
+    }
+
+    if (showRegister) {
+        return (
+            <div>
+                <nav style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
+                    <h2>TeeCraft</h2>
+
+                    <span
+                        onClick={() => setShowRegister(false)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        Home
+                    </span>
+                </nav>
+
+                <section style={{ padding: "80px", textAlign: "center" }}>
+                    <h1>Register</h1>
+
+                    <div style={{
+                        marginTop: "30px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "15px",
+                        maxWidth: "400px",
+                        marginLeft: "auto",
+                        marginRight: "auto"
+                    }}>
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <input
+                            type="text"
+                            placeholder="First name"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <input
+                            type="text"
+                            placeholder="Last name"
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <input
+                            type="text"
+                            placeholder="Phone number"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <button
+                            onClick={registerUser}
+                            style={{
+                                padding: "15px 30px",
+                                backgroundColor: "black",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "16px"
+                            }}
+                        >
+                            Register
+                        </button>
+                    </div>
+                </section>
+            </div>
+        )
+    }
 
     if (showCart) {
         return (
             <div>
-                <nav
-                    style={{
-                        backgroundColor: "#111",
-                        color: "white",
-                        padding: "20px",
-                        display: "flex",
-                        justifyContent: "space-between"
-                    }}
-                >
+                <nav style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
                     <h2
                         style={{ cursor: "pointer", color: "white" }}
                         onClick={() => setShowCart(false)}
@@ -129,10 +400,7 @@ function App() {
                                 setShowCart(false)
                                 setSelectedProduct(null)
                             }}
-                            style={{
-                                marginRight: "20px",
-                                cursor: "pointer"
-                            }}
+                            style={{ marginRight: "20px", cursor: "pointer" }}
                         >
                             Home
                         </span>
@@ -140,15 +408,14 @@ function App() {
                         <span style={{ cursor: "pointer" }}>
                             Cart ({cart.length})
                         </span>
-                    </div>                </nav>
+                    </div>
+                </nav>
 
-                <section
-                    style={{
-                        padding: "40px",
-                        maxWidth: "900px",
-                        margin: "0 auto"
-                    }}
-                >
+                <section style={{
+                    padding: "40px",
+                    maxWidth: "900px",
+                    margin: "0 auto"
+                }}>
                     <button
                         onClick={() => setShowCart(false)}
                         style={{
@@ -173,12 +440,14 @@ function App() {
                                     style={{
                                         border: "1px solid #ddd",
                                         padding: "20px",
-                                        marginBottom: "20px"
+                                        marginBottom: "20px",
+                                        textAlign: "center"
                                     }}
                                 >
                                     <h3>{item.name}</h3>
                                     <p>{item.description}</p>
-                                    <h2>{item.basePrice} kr</h2>
+                                    <h2>{item.selectedVariant?.price ?? item.basePrice} kr</h2>
+
                                     {item.selectedVariant && (
                                         <div>
                                             <p>Color: {item.selectedVariant.color}</p>
@@ -186,9 +455,10 @@ function App() {
                                             <p>Fit: {item.selectedVariant.fit}</p>
                                         </div>
                                     )}
+
                                     <div style={{ marginBottom: "10px" }}>
                                         <button
-                                            onClick={() => decreaseQuantity(item.productId)}
+                                            onClick={() => decreaseQuantity(item.productId, item.selectedVariant.productVariantId)}
                                             style={{
                                                 padding: "5px 10px",
                                                 marginRight: "10px",
@@ -229,31 +499,32 @@ function App() {
 
                             <h2 style={{ marginTop: "30px" }}>
                                 Total: {cartTotal} kr
-                                </h2>
-                                <button
-                                    onClick={() => {
-                                        setShowCart(false)
-                                        setShowCheckout(true)
-                                    }}
-                                    style={{
-                                        marginTop: "20px",
-                                        padding: "15px 30px",
-                                        backgroundColor: "black",
-                                        color: "white",
-                                        border: "none",
-                                        cursor: "pointer",
-                                        fontSize: "16px"
-                                    }}
-                                >
-                                    Proceed to Checkout
-                                </button>
+                            </h2>
+
+                            <button
+                                onClick={() => {
+                                    setShowCart(false)
+                                    setShowCheckout(true)
+                                }}
+                                style={{
+                                    marginTop: "20px",
+                                    padding: "15px 30px",
+                                    backgroundColor: "black",
+                                    color: "white",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "16px"
+                                }}
+                            >
+                                Proceed to Checkout
+                            </button>
                         </>
                     )}
-
                 </section>
             </div>
         )
     }
+
     if (showCheckout) {
         return (
             <div>
@@ -277,26 +548,22 @@ function App() {
                     </span>
                 </nav>
 
-                <section style={{
-                    padding: "80px",
-                    textAlign: "center"
-                }}>
+                <section style={{ padding: "80px", textAlign: "center" }}>
                     <h1>Checkout</h1>
 
                     <p style={{ marginTop: "20px" }}>
                         Total Amount: {cartTotal} kr
                     </p>
-                    <div
-                        style={{
-                            marginTop: "30px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "15px",
-                            maxWidth: "400px",
-                            marginLeft: "auto",
-                            marginRight: "auto"
-                        }}
-                    >
+
+                    <div style={{
+                        marginTop: "30px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "15px",
+                        maxWidth: "400px",
+                        marginLeft: "auto",
+                        marginRight: "auto"
+                    }}>
                         <input
                             type="text"
                             placeholder="Full name"
@@ -321,8 +588,15 @@ function App() {
                             style={{ padding: "12px", fontSize: "16px" }}
                         />
                     </div>
+
                     <button
                         onClick={async () => {
+                            if (!token) {
+                                alert("Please login before checkout.")
+                                setShowLogin(true)
+                                return
+                            }
+
                             if (!customerName || !customerEmail || !customerAddress) {
                                 alert("Please fill in all checkout fields.")
                                 return
@@ -332,31 +606,26 @@ function App() {
                                 alert("Please enter a valid email address.")
                                 return
                             }
-                            for (const item of cart) {
-                                console.log(item)
-                            }
-                            for (const item of cart) {
-                                const variantId = item.selectedVariant.productVariantId
-                                const newStockQuantity = item.selectedVariant.stockQuantity - item.quantity
 
-                                const response = await fetch(`https://localhost:7042/api/ProductVariants/${variantId}/stock`, {
-                                    method: "PUT",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "Authorization": `Bearer ${localStorage.getItem("token")}`
-                                    },
-                                    body: JSON.stringify({
-                                        stockQuantity: newStockQuantity
-                                    })
+                            const response = await fetch("https://localhost:7042/api/Orders/checkout", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    customerId: 1,
+                                    paymentMethod: "Card"
                                 })
+                            })
 
-                                if (!response.ok) {
-                                    alert("Stock update failed.")
-                                    return
-                                }
+                            if (!response.ok) {
+                                alert("Checkout failed.")
+                                return
                             }
 
                             alert("Purchase completed!")
+
                             setCart([])
                             localStorage.removeItem("cart")
                             setCustomerName("")
@@ -365,6 +634,8 @@ function App() {
                             setShowCheckout(false)
                             setShowCart(false)
                             setSelectedProduct(null)
+
+                            fetchProducts()
                         }}
                         style={{
                             marginTop: "30px",
@@ -383,10 +654,6 @@ function App() {
         )
     }
 
-    const selectedVariant = selectedProduct?.productVariants.find(
-        variant => variant.productVariantId === Number(selectedVariantId)
-    )
-
     if (selectedProduct) {
         return (
             <div>
@@ -397,7 +664,10 @@ function App() {
                     display: "flex",
                     justifyContent: "space-between"
                 }}>
-                    <h2 style={{ color: "white", cursor: "pointer" }} onClick={() => setSelectedProduct(null)}>
+                    <h2
+                        style={{ color: "white", cursor: "pointer" }}
+                        onClick={() => setSelectedProduct(null)}
+                    >
                         TeeCraft
                     </h2>
 
@@ -488,6 +758,7 @@ function App() {
                                 Stock available: {selectedVariant.stockQuantity}
                             </p>
                         )}
+
                         {selectedProduct.productVariants.map(variant => (
                             <div
                                 key={variant.productVariantId}
@@ -500,10 +771,10 @@ function App() {
                                 <p>Color: {variant.color}</p>
                                 <p>Size: {variant.size}</p>
                                 <p>Fit: {variant.fit}</p>
-                                <p>Stock: {variant.stockQuantity}</p>
                                 <p>Price: {variant.price} kr</p>
                             </div>
                         ))}
+
                         <button
                             onClick={() => {
                                 if (!selectedVariantId) {
@@ -540,30 +811,26 @@ function App() {
 
     return (
         <div>
-            <nav
-                style={{
-                    backgroundColor: "#111",
-                    color: "white",
-                    padding: "20px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                }}
-            >
+            <nav style={{
+                backgroundColor: "#111",
+                color: "white",
+                padding: "20px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+            }}>
                 <h2 style={{ color: "white" }}>TeeCraft</h2>
 
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        border: "1px solid #777",
-                        padding: "8px 12px",
-                        width: "320px",
-                        backgroundColor: "transparent",
-                        marginLeft: "120px"
-                    }}
-                >
+                <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    border: "1px solid #777",
+                    padding: "8px 12px",
+                    width: "320px",
+                    backgroundColor: "transparent",
+                    marginLeft: "120px"
+                }}>
                     <span style={{ color: "white", fontSize: "16px" }}>⌕</span>
 
                     <input
@@ -585,6 +852,32 @@ function App() {
                 <div>
                     <span style={{ marginRight: "20px" }}>Home</span>
                     <span style={{ marginRight: "20px" }}>Products</span>
+
+                    {!token ? (
+                        <>
+                            <span
+                                onClick={() => setShowLogin(true)}
+                                style={{ marginRight: "20px", cursor: "pointer" }}
+                            >
+                                Login
+                            </span>
+
+                            <span
+                                onClick={() => setShowRegister(true)}
+                                style={{ marginRight: "20px", cursor: "pointer" }}
+                            >
+                                Register
+                            </span>
+                        </>
+                    ) : (
+                        <span
+                            onClick={logoutUser}
+                            style={{ marginRight: "20px", cursor: "pointer" }}
+                        >
+                            Logout
+                        </span>
+                    )}
+
                     <span
                         onClick={() => setShowCart(true)}
                         style={{ cursor: "pointer" }}
@@ -594,25 +887,22 @@ function App() {
                 </div>
             </nav>
 
-            <section
-                style={{
-                    padding: "80px",
-                    textAlign: "center"
-                }}
-            >
+            <section style={{
+                padding: "80px",
+                textAlign: "center"
+            }}>
                 <h1 style={{ fontSize: "60px" }}>Premium T-Shirts</h1>
                 <p style={{ fontSize: "20px" }}>T-shirts for modern fashion.</p>
-                <button
-                    style={{
-                        marginTop: "20px",
-                        padding: "15px 30px",
-                        backgroundColor: "black",
-                        color: "white",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "16px"
-                    }}
-                >
+
+                <button style={{
+                    marginTop: "20px",
+                    padding: "15px 30px",
+                    backgroundColor: "black",
+                    color: "white",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "16px"
+                }}>
                     Shop Now
                 </button>
             </section>
@@ -641,6 +931,7 @@ function App() {
                     <option value="Navy Blue">Navy Blue</option>
                     <option value="Red">Red</option>
                 </select>
+
                 <select
                     value={selectedSize}
                     onChange={(e) => setSelectedSize(e.target.value)}
@@ -681,15 +972,15 @@ function App() {
                             )
                         )
                         .map(product => (
-                        <div
-                            key={product.productId}
-                            style={{
-                                width: "250px",
-                                border: "1px solid #ddd",
-                                padding: "20px",
-                                textAlign: "center"
-                            }}
-                        >
+                            <div
+                                key={product.productId}
+                                style={{
+                                    width: "250px",
+                                    border: "1px solid #ddd",
+                                    padding: "20px",
+                                    textAlign: "center"
+                                }}
+                            >
                                 <img
                                     src={
                                         product.name === "Black Tee"
@@ -700,33 +991,33 @@ function App() {
                                                     ? navyTee
                                                     : redTee
                                     }
-                                alt={product.name}
-                                style={{
-                                    width: "100%",
-                                    height: "220px",
-                                    objectFit: "cover",
-                                    marginBottom: "15px"
-                                }}
-                            />
+                                    alt={product.name}
+                                    style={{
+                                        width: "100%",
+                                        height: "220px",
+                                        objectFit: "cover",
+                                        marginBottom: "15px"
+                                    }}
+                                />
 
-                            <h3>{product.name}</h3>
-                            <p>{product.description}</p>
-                            <p>{product.basePrice} kr</p>
+                                <h3>{product.name}</h3>
+                                <p>{product.description}</p>
+                                <p>{product.basePrice} kr</p>
 
-                            <button
-                                onClick={() => setSelectedProduct(product)}
-                                style={{
-                                    padding: "10px 20px",
-                                    backgroundColor: "black",
-                                    color: "white",
-                                    border: "none",
-                                    cursor: "pointer"
-                                }}
-                            >
-                                View Product
-                            </button>
-                        </div>
-                    ))}
+                                <button
+                                    onClick={() => setSelectedProduct(product)}
+                                    style={{
+                                        padding: "10px 20px",
+                                        backgroundColor: "black",
+                                        color: "white",
+                                        border: "none",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    View Product
+                                </button>
+                            </div>
+                        ))}
                 </div>
             </section>
         </div>
