@@ -33,6 +33,9 @@ function App() {
     const [lastName, setLastName] = useState("")
     const [phoneNumber, setPhoneNumber] = useState("")
 
+    const [orders, setOrders] = useState([])
+    const [showOrders, setShowOrders] = useState(false)
+
     const [token, setToken] = useState(localStorage.getItem("token") || "")
 
     useEffect(() => {
@@ -614,7 +617,6 @@ function App() {
                                     "Authorization": `Bearer ${token}`
                                 },
                                 body: JSON.stringify({
-                                    customerId: 1,
                                     paymentMethod: "Card"
                                 })
                             })
@@ -653,7 +655,48 @@ function App() {
             </div>
         )
     }
+    if (showOrders) {
+        return (
+            <div>
+                <nav style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
+                    <h2>TeeCraft</h2>
 
+                    <span
+                        onClick={() => setShowOrders(false)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        Back
+                    </span>
+                </nav>
+
+                <section style={{ padding: "40px" }}>
+                    <h1>My Orders</h1>
+
+                    {orders.map(order => (
+                        <div
+                            key={order.orderId}
+                            style={{
+                                border: "1px solid #ddd",
+                                padding: "20px",
+                                marginBottom: "20px"
+                            }}
+                        >
+                            <p>Order ID: {order.orderId}</p>
+                            <p>Status: {order.status}</p>
+                            <p>Total: {order.totalAmount} kr</p>
+                            <p>Date: {order.orderDate}</p>
+                        </div>
+                    ))}
+                </section>
+            </div>
+        )
+    }
     if (selectedProduct) {
         return (
             <div>
@@ -877,7 +920,28 @@ function App() {
                             Logout
                         </span>
                     )}
+                    <span
+                        onClick={async () => {
+                            const response = await fetch("https://localhost:7042/api/Orders/my-orders", {
+                                headers: {
+                                    "Authorization": `Bearer ${token}`
+                                }
+                            })
 
+                            if (!response.ok) {
+                                alert("Could not load orders")
+                                return
+                            }
+
+                            const data = await response.json()
+
+                            setOrders(data)
+                            setShowOrders(true)
+                        }}
+                        style={{ marginRight: "20px", cursor: "pointer" }}
+                    >
+                        My Orders
+                    </span>
                     <span
                         onClick={() => setShowCart(true)}
                         style={{ cursor: "pointer" }}

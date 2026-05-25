@@ -43,13 +43,30 @@ public class OrdersController : ControllerBase
     }
 
     // POST: api/orders/checkout
+    [Authorize]
     [HttpPost("checkout")]
     public async Task<ActionResult<OrderDto>> Checkout(CheckoutDto dto)
     {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+        {
+            return Unauthorized();
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var customer = await _context.Customers
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (customer == null)
+        {
+            return NotFound("Customer profile not found.");
+        }
         var cart = await _context.Carts
             .Include(c => c.CartItems)
             .ThenInclude(ci => ci.ProductVariant)
-            .FirstOrDefaultAsync(c => c.CustomerId == dto.CustomerId);
+            .FirstOrDefaultAsync(c => c.CustomerId == customer.CustomerId);
 
         if (cart == null || !cart.CartItems.Any())
         {
@@ -69,7 +86,7 @@ public class OrdersController : ControllerBase
 
         var order = new Order
         {
-            CustomerId = dto.CustomerId,
+            CustomerId = customer.CustomerId,
             OrderDate = DateTime.UtcNow,
             TotalAmount = totalAmount,
             Status = "Created",
@@ -116,7 +133,7 @@ public class OrdersController : ControllerBase
             }).ToList()
         };
 
-        return CreatedAtAction(nameof(GetOrdersByCustomer), new { customerId = dto.CustomerId }, response);
+        return CreatedAtAction(nameof(GetOrdersByCustomer), new { customerId = customer.CustomerId }, response);
     }
 
     // GET: api/orders/my-orders

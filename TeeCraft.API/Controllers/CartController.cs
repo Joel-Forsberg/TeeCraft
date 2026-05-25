@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TeeCraft.API.Data;
 using TeeCraft.API.DTOs;
 using TeeCraft.API.DTOs.Cart;
@@ -49,10 +51,28 @@ public class CartController : ControllerBase
             })
         });
     }
-
+    
+    [Authorize]
     [HttpPost("items")]
     public async Task<ActionResult<CartItem>> AddItemToCart(AddCartItemDto dto)
     {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null)
+        {
+            return Unauthorized();
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var customer = await _context.Customers
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (customer == null)
+        {
+            return NotFound("Customer profile not found.");
+        }
+        
         if (dto.Quantity <= 0)
         {
             return BadRequest("Quantity must be greater than 0.");
@@ -68,13 +88,13 @@ public class CartController : ControllerBase
 
         var cart = await _context.Carts
             .Include(c => c.CartItems)
-            .FirstOrDefaultAsync(c => c.CustomerId == dto.CustomerId);
+            .FirstOrDefaultAsync(c => c.CustomerId == customer.CustomerId);
 
         if (cart == null)
         {
             cart = new Cart
             {
-                CustomerId = dto.CustomerId
+                CustomerId = customer.CustomerId
             };
 
             _context.Carts.Add(cart);
