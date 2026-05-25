@@ -137,7 +137,6 @@ function App() {
                 "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
-                customerId: 1,
                 productVariantId: product.selectedVariant.productVariantId,
                 quantity: 1
             })
@@ -691,6 +690,15 @@ function App() {
                             <p>Status: {order.status}</p>
                             <p>Total: {order.totalAmount} kr</p>
                             <p>Date: {order.orderDate}</p>
+                            <h4>Items</h4>
+
+                            {order.items?.map(item => (
+                                <div key={item.orderItemId}>
+                                    <p>Product Variant ID: {item.productVariantId}</p>
+                                    <p>Quantity: {item.quantity}</p>
+                                    <p>Unit Price: {item.unitPrice} kr</p>
+                                </div>
+                            ))}
                         </div>
                     ))}
                 </section>
@@ -934,6 +942,8 @@ function App() {
                             }
 
                             const data = await response.json()
+
+                            console.log(data)
 
                             setOrders(data)
                             setShowOrders(true)
