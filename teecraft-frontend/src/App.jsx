@@ -38,7 +38,8 @@ function App() {
 
     const [token, setToken] = useState(localStorage.getItem("token") || "")
     const [role, setRole] = useState(localStorage.getItem("role") || "")
-   const [showAdminPanel, setShowAdminPanel] = useState(false)
+    const [showAdminPanel, setShowAdminPanel] = useState(false)
+    const [adminDashboard, setAdminDashboard] = useState(null)
 
     useEffect(() => {
         fetchProducts()
@@ -213,6 +214,101 @@ function App() {
     const selectedVariant = selectedProduct?.productVariants.find(
         variant => variant.productVariantId === Number(selectedVariantId)
     )
+
+    if (showAdminPanel) {
+        return (
+            <div>
+                <nav style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
+                    <h2>TeeCraft Admin</h2>
+
+                    <span
+                        onClick={() => setShowAdminPanel(false)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        Back to store
+                    </span>
+                </nav>
+
+                <section style={{ padding: "40px", textAlign: "center" }}>
+                    <h1>Admin Dashboard</h1>
+
+                    <button
+                        onClick={async () => {
+                            const response = await fetch("https://localhost:7042/api/Admin/dashboard", {
+                                headers: {
+                                    "Authorization": `Bearer ${token}`
+                                }
+                            })
+
+                            if (!response.ok) {
+                                alert("Could not load admin dashboard")
+                                return
+                            }
+
+                            const data = await response.json()
+                            setAdminDashboard(data)
+                        }}
+                        style={{
+                            padding: "12px 25px",
+                            backgroundColor: "black",
+                            color: "white",
+                            border: "none",
+                            cursor: "pointer",
+                            marginBottom: "30px"
+                        }}
+                    >
+                        Load Dashboard
+                    </button>
+
+                    {adminDashboard && (
+                        <div style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(3, 1fr)",
+                            gap: "20px",
+                            maxWidth: "900px",
+                            margin: "0 auto"
+                        }}>
+                            <div style={{ border: "1px solid #ddd", padding: "20px" }}>
+                                <h3>Total Products</h3>
+                                <p>{adminDashboard.totalProducts}</p>
+                            </div>
+
+                            <div style={{ border: "1px solid #ddd", padding: "20px" }}>
+                                <h3>Total Customers</h3>
+                                <p>{adminDashboard.totalCustomers}</p>
+                            </div>
+
+                            <div style={{ border: "1px solid #ddd", padding: "20px" }}>
+                                <h3>Total Orders</h3>
+                                <p>{adminDashboard.totalOrders}</p>
+                            </div>
+
+                            <div style={{ border: "1px solid #ddd", padding: "20px" }}>
+                                <h3>Total Reviews</h3>
+                                <p>{adminDashboard.totalReviews}</p>
+                            </div>
+
+                            <div style={{ border: "1px solid #ddd", padding: "20px" }}>
+                                <h3>Total Sales</h3>
+                                <p>{adminDashboard.totalSales}</p>
+                            </div>
+
+                            <div style={{ border: "1px solid #ddd", padding: "20px" }}>
+                                <h3>Low Stock Variants</h3>
+                                <p>{adminDashboard.lowStockVariants}</p>
+                            </div>
+                        </div>
+                    )}
+                </section>
+            </div>
+        )
+    }
 
     if (showLogin) {
         return (
