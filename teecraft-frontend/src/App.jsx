@@ -37,6 +37,8 @@ function App() {
     const [showOrders, setShowOrders] = useState(false)
 
     const [token, setToken] = useState(localStorage.getItem("token") || "")
+    const [role, setRole] = useState(localStorage.getItem("role") || "")
+   const [showAdminPanel, setShowAdminPanel] = useState(false)
 
     useEffect(() => {
         fetchProducts()
@@ -76,6 +78,12 @@ function App() {
         localStorage.setItem("token", data.token)
         setToken(data.token)
 
+        const payload = JSON.parse(atob(data.token.split(".")[1]))
+        const userRole = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+
+        localStorage.setItem("role", userRole)
+        setRole(userRole)
+
         alert("Login successful!")
         setShowLogin(false)
     }
@@ -107,7 +115,9 @@ function App() {
 
     function logoutUser() {
         localStorage.removeItem("token")
+        localStorage.removeItem("role")
         setToken("")
+        setRole("")
         alert("Logged out")
     }
 
@@ -952,6 +962,14 @@ function App() {
                     >
                         My Orders
                     </span>
+                    {role === "Admin" && (
+                        <span
+                            onClick={() => setShowAdminPanel(true)}
+                            style={{ marginRight: "20px", cursor: "pointer" }}
+                        >
+                            Admin Panel
+                        </span>
+                    )}
                     <span
                         onClick={() => setShowCart(true)}
                         style={{ cursor: "pointer" }}
