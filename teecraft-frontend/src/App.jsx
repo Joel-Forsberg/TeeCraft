@@ -40,6 +40,7 @@ function App() {
     const [role, setRole] = useState(localStorage.getItem("role") || "")
     const [showAdminPanel, setShowAdminPanel] = useState(false)
     const [adminDashboard, setAdminDashboard] = useState(null)
+    const [adminOrders, setAdminOrders] = useState([])
 
     useEffect(() => {
         fetchProducts()
@@ -265,6 +266,106 @@ function App() {
                     >
                         Load Dashboard
                     </button>
+
+                    <div style={{ marginBottom: "30px" }}>
+
+                        <button
+                            onClick={async () => {
+                                const response = await fetch("https://localhost:7042/api/Admin/dashboard", {
+                                    headers: {
+                                        "Authorization": `Bearer ${token}`
+                                    }
+                                })
+
+                                if (!response.ok) {
+                                    alert("Could not load dashboard")
+                                    return
+                                }
+
+                                const data = await response.json()
+                                setAdminDashboard(data)
+                            }}                        >
+                            Load Dashboard
+                        </button>
+
+                        <button
+                            onClick={async () => {
+                                const response = await fetch("https://localhost:7042/api/Orders", {
+                                    headers: {
+                                        "Authorization": `Bearer ${token}`
+                                    }
+                                })
+
+                                if (!response.ok) {
+                                    alert("Could not load orders")
+                                    return
+                                }
+
+                                const data = await response.json()
+                                setAdminOrders(data)
+                            }}
+                            style={{
+                                marginLeft: "10px"
+                            }}
+                        >
+                            Load Orders
+                        </button>
+
+                    </div>
+
+                    {adminOrders.map(order => (
+                        <div
+                            key={order.orderId}
+                            style={{
+                                border: "1px solid #ddd",
+                                padding: "20px",
+                                marginBottom: "20px",
+                                maxWidth: "700px",
+                                margin: "20px auto"
+                            }}
+                        >
+                            <h3>Order #{order.orderId}</h3>
+
+                            <p>Status: {order.status}</p>
+                            <p>Total: {order.totalAmount} kr</p>
+
+                            <button
+                                onClick={async () => {
+
+                                    const response = await fetch(
+                                        `https://localhost:7042/api/Orders/${order.orderId}/status`,
+                                        {
+                                            method: "PUT",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                                "Authorization": `Bearer ${token}`
+                                            },
+                                            body: JSON.stringify({
+                                                status: "Completed"
+                                            })
+                                        }
+                                    )
+
+                                    if (!response.ok) {
+                                        alert("Could not update status")
+                                        return
+                                    }
+
+                                    alert("Order updated")
+
+                                    setAdminOrders(adminOrders.map(o =>
+                                        o.orderId === order.orderId
+                                            ? { ...o, status: "Completed" }
+                                            : o
+                                    ))
+
+                                }}
+                            >
+                                Mark as Completed
+                            </button>
+
+                        </div>
+                    ))}
 
                     {adminDashboard && (
                         <div style={{

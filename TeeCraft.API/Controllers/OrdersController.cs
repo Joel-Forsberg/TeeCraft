@@ -22,24 +22,33 @@ public class OrdersController : ControllerBase
     }
 
     // GET: api/orders
+    [Authorize(Roles = "Admin")]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrders()
     {
-        return await _context.Orders
+        var orders = await _context.Orders
             .Include(o => o.OrderItems)
             .Include(o => o.Payment)
+            .Select(o => new OrderDto
+            {
+                OrderId = o.OrderId,
+                CustomerId = o.CustomerId,
+                OrderDate = o.OrderDate,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                PaymentStatus = o.Payment != null ? o.Payment.PaymentStatus : string.Empty,
+                PaymentMethod = o.Payment != null ? o.Payment.PaymentMethod : string.Empty,
+                Items = o.OrderItems.Select(i => new OrderItemDto
+                {
+                    OrderItemId = i.OrderItemId,
+                    ProductVariantId = i.ProductVariantId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            })
             .ToListAsync();
-    }
 
-    // GET: api/orders/customer/1
-    [HttpGet("customer/{customerId}")]
-    public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByCustomer(int customerId)
-    {
-        return await _context.Orders
-            .Where(o => o.CustomerId == customerId)
-            .Include(o => o.OrderItems)
-            .Include(o => o.Payment)
-            .ToListAsync();
+        return Ok(orders);
     }
 
     // POST: api/orders/checkout
@@ -133,7 +142,7 @@ public class OrdersController : ControllerBase
             }).ToList()
         };
 
-        return CreatedAtAction(nameof(GetOrdersByCustomer), new { customerId = customer.CustomerId }, response);
+        return Ok(response);
     }
 
     // GET: api/orders/my-orders
