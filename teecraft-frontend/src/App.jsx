@@ -41,6 +41,8 @@ function App() {
     const [showAdminPanel, setShowAdminPanel] = useState(false)
     const [adminDashboard, setAdminDashboard] = useState(null)
     const [adminOrders, setAdminOrders] = useState([])
+    const [orderHistories, setOrderHistories] = useState({})
+
 
     useEffect(() => {
         fetchProducts()
@@ -239,38 +241,21 @@ function App() {
                 <section style={{ padding: "40px", textAlign: "center" }}>
                     <h1>Admin Dashboard</h1>
 
-                    <button
-                        onClick={async () => {
-                            const response = await fetch("https://localhost:7042/api/Admin/dashboard", {
-                                headers: {
-                                    "Authorization": `Bearer ${token}`
-                                }
-                            })
-
-                            if (!response.ok) {
-                                alert("Could not load admin dashboard")
-                                return
-                            }
-
-                            const data = await response.json()
-                            setAdminDashboard(data)
-                        }}
-                        style={{
-                            padding: "12px 25px",
-                            backgroundColor: "black",
-                            color: "white",
-                            border: "none",
-                            cursor: "pointer",
-                            marginBottom: "30px"
-                        }}
-                    >
-                        Load Dashboard
-                    </button>
-
-                    <div style={{ marginBottom: "30px" }}>
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: "20px",
+                        marginBottom: "30px"
+                    }}>
 
                         <button
                             onClick={async () => {
+
+                                if (adminDashboard) {
+                                    setAdminDashboard(null)
+                                    return
+                                }
+
                                 const response = await fetch("https://localhost:7042/api/Admin/dashboard", {
                                     headers: {
                                         "Authorization": `Bearer ${token}`
@@ -278,18 +263,33 @@ function App() {
                                 })
 
                                 if (!response.ok) {
-                                    alert("Could not load dashboard")
+                                    alert("Could not load admin dashboard")
                                     return
                                 }
 
                                 const data = await response.json()
                                 setAdminDashboard(data)
-                            }}                        >
-                            Load Dashboard
+                            }}
+
+                            style={{
+                                padding: "12px 25px",
+                                backgroundColor: "black",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer"
+                            }}
+                        >
+                            {adminDashboard ? "Hide Dashboard" : "Load Dashboard"}
                         </button>
 
                         <button
                             onClick={async () => {
+
+                                if (adminOrders.length > 0) {
+                                    setAdminOrders([])
+                                    return
+                                }
+
                                 const response = await fetch("https://localhost:7042/api/Orders", {
                                     headers: {
                                         "Authorization": `Bearer ${token}`
@@ -304,11 +304,16 @@ function App() {
                                 const data = await response.json()
                                 setAdminOrders(data)
                             }}
+
                             style={{
-                                marginLeft: "10px"
+                                padding: "12px 25px",
+                                backgroundColor: "black",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer"
                             }}
                         >
-                            Load Orders
+                            {adminOrders.length > 0 ? "Hide Orders" : "Load Orders"}
                         </button>
 
                     </div>
@@ -370,6 +375,65 @@ function App() {
                                 <option value="Completed">Completed</option>
                                 <option value="Cancelled">Cancelled</option>
                             </select>
+
+                            <button
+                                onClick={async () => {
+                                    if (orderHistories[order.orderId]) {
+                                        const updatedHistories = { ...orderHistories }
+                                        delete updatedHistories[order.orderId]
+                                        setOrderHistories(updatedHistories)
+                                        return
+                                    }
+
+                                    const response = await fetch(`https://localhost:7042/api/Orders/${order.orderId}/history`, {
+                                        headers: {
+                                            "Authorization": `Bearer ${token}`
+                                        }
+                                    })
+
+                                    if (!response.ok) {
+                                        alert("Could not load order history")
+                                        return
+                                    }
+
+                                    const data = await response.json()
+
+                                    setOrderHistories({
+                                        ...orderHistories,
+                                        [order.orderId]: data
+                                    })
+                                }}
+                                style={{
+                                    marginTop: "10px",
+                                    marginLeft: "10px"
+                                }}
+                            >
+                                {orderHistories[order.orderId] ? "Hide History" : "View History"}
+                            </button>
+
+                            {orderHistories[order.orderId] && (
+                                <div style={{ marginTop: "20px" }}>
+                                    <h4>Order History</h4>
+
+                                    {orderHistories[order.orderId].map(history => (
+                                        <div
+                                            key={history.orderStatusHistoryId}
+                                            style={{
+                                                borderTop: "1px solid #ddd",
+                                                padding: "10px 0"
+                                            }}
+                                        >
+                                            <p>
+                                                {history.oldStatus} → {history.newStatus}
+                                            </p>
+
+                                            <p>
+                                                {new Date(history.changedAt).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                         </div>
                     ))}
