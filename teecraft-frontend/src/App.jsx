@@ -329,8 +329,10 @@ function App() {
                             <p>Status: {order.status}</p>
                             <p>Total: {order.totalAmount} kr</p>
 
-                            <button
-                                onClick={async () => {
+                            <select
+                                value={order.status}
+                                onChange={async (e) => {
+                                    const newStatus = e.target.value
 
                                     const response = await fetch(
                                         `https://localhost:7042/api/Orders/${order.orderId}/status`,
@@ -341,7 +343,7 @@ function App() {
                                                 "Authorization": `Bearer ${token}`
                                             },
                                             body: JSON.stringify({
-                                                status: "Completed"
+                                                status: newStatus
                                             })
                                         }
                                     )
@@ -351,18 +353,23 @@ function App() {
                                         return
                                     }
 
-                                    alert("Order updated")
-
                                     setAdminOrders(adminOrders.map(o =>
                                         o.orderId === order.orderId
-                                            ? { ...o, status: "Completed" }
+                                            ? { ...o, status: newStatus }
                                             : o
                                     ))
-
+                                }}
+                                style={{
+                                    padding: "8px",
+                                    marginTop: "10px"
                                 }}
                             >
-                                Mark as Completed
-                            </button>
+                                <option value="Created">Created</option>
+                                <option value="Processing">Processing</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
 
                         </div>
                     ))}
