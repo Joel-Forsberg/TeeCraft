@@ -48,6 +48,13 @@ function App() {
     const [adminProducts, setAdminProducts] = useState([])
     const [showAdminProducts, setShowAdminProducts] = useState(false)
 
+    const [editingProductId, setEditingProductId] = useState(null)
+    const [editName, setEditName] = useState("")
+    const [editDescription, setEditDescription] = useState("")
+    const [editBasePrice, setEditBasePrice] = useState("")
+    const [editImageUrl, setEditImageUrl] = useState("")
+    const [editCategoryId, setEditCategoryId] = useState("")
+
     useEffect(() => {
         fetchProducts()
     }, [])
@@ -375,6 +382,27 @@ function App() {
                                     <p>Category: {product.categoryName}</p>
 
                                     <button
+                                        onClick={() => {
+                                            setEditingProductId(product.productId)
+                                            setEditName(product.name)
+                                            setEditDescription(product.description)
+                                            setEditBasePrice(product.basePrice)
+                                            setEditImageUrl(product.imageUrl)
+                                            setEditCategoryId(product.categoryId)
+                                        }}
+                                        style={{
+                                            padding: "10px 20px",
+                                            backgroundColor: "orange",
+                                            color: "white",
+                                            border: "none",
+                                            cursor: "pointer",
+                                            marginRight: "10px"
+                                        }}
+                                    >
+                                        Edit
+                                    </button>
+
+                                    <button
                                         onClick={async () => {
 
                                             const confirmDelete = window.confirm(
@@ -418,6 +446,69 @@ function App() {
                                     >
                                         Delete
                                     </button>
+                                    {editingProductId === product.productId && (
+                                        <div style={{
+                                            marginTop: "20px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: "10px"
+                                        }}>
+                                            <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                                            <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+                                            <input value={editBasePrice} onChange={(e) => setEditBasePrice(e.target.value)} />
+                                            <input value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)} />
+                                            <input value={editCategoryId} onChange={(e) => setEditCategoryId(e.target.value)} />
+
+                                            <button
+                                                onClick={async () => {
+                                                    const response = await fetch(
+                                                        `https://localhost:7042/api/Products/${product.productId}`,
+                                                        {
+                                                            method: "PUT",
+                                                            headers: {
+                                                                "Content-Type": "application/json",
+                                                                "Authorization": `Bearer ${token}`
+                                                            },
+                                                            body: JSON.stringify({
+                                                                name: editName,
+                                                                description: editDescription,
+                                                                basePrice: Number(editBasePrice),
+                                                                imageUrl: editImageUrl,
+                                                                categoryId: Number(editCategoryId)
+                                                            })
+                                                        }
+                                                    )
+
+                                                    if (!response.ok) {
+                                                        alert("Could not update product")
+                                                        return
+                                                    }
+
+                                                    setAdminProducts(adminProducts.map(p =>
+                                                        p.productId === product.productId
+                                                            ? {
+                                                                ...p,
+                                                                name: editName,
+                                                                description: editDescription,
+                                                                basePrice: Number(editBasePrice),
+                                                                imageUrl: editImageUrl,
+                                                                categoryId: Number(editCategoryId)
+                                                            }
+                                                            : p
+                                                    ))
+
+                                                    setEditingProductId(null)
+                                                    alert("Product updated")
+                                                }}
+                                            >
+                                                Save
+                                            </button>
+
+                                            <button onClick={() => setEditingProductId(null)}>
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
