@@ -42,7 +42,8 @@ function App() {
     const [adminDashboard, setAdminDashboard] = useState(null)
     const [adminOrders, setAdminOrders] = useState([])
     const [orderHistories, setOrderHistories] = useState({})
-
+    const [lowStockVariants, setLowStockVariants] = useState([])
+    const [showLowStock, setShowLowStock] = useState(false)
 
     useEffect(() => {
         fetchProducts()
@@ -247,10 +248,8 @@ function App() {
                         gap: "20px",
                         marginBottom: "30px"
                     }}>
-
                         <button
                             onClick={async () => {
-
                                 if (adminDashboard) {
                                     setAdminDashboard(null)
                                     return
@@ -270,7 +269,6 @@ function App() {
                                 const data = await response.json()
                                 setAdminDashboard(data)
                             }}
-
                             style={{
                                 padding: "12px 25px",
                                 backgroundColor: "black",
@@ -284,7 +282,6 @@ function App() {
 
                         <button
                             onClick={async () => {
-
                                 if (adminOrders.length > 0) {
                                     setAdminOrders([])
                                     return
@@ -304,7 +301,6 @@ function App() {
                                 const data = await response.json()
                                 setAdminOrders(data)
                             }}
-
                             style={{
                                 padding: "12px 25px",
                                 backgroundColor: "black",
@@ -316,7 +312,46 @@ function App() {
                             {adminOrders.length > 0 ? "Hide Orders" : "Load Orders"}
                         </button>
 
+                        <button
+                            onClick={async () => {
+                                if (showLowStock) {
+                                    setShowLowStock(false)
+                                    setLowStockVariants([])
+                                    return
+                                }
+
+                                const response = await fetch("https://localhost:7042/api/Admin/low-stock", {
+                                    headers: {
+                                        "Authorization": `Bearer ${token}`
+                                    }
+                                })
+
+                                if (!response.ok) {
+                                    alert("Could not load low stock variants")
+                                    return
+                                }
+
+                                const data = await response.json()
+                                setLowStockVariants(data)
+                                setShowLowStock(true)
+                            }}
+                            style={{
+                                padding: "12px 25px",
+                                backgroundColor: "black",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer"
+                            }}
+                        >
+                            {showLowStock ? "Hide Low Stock" : "Load Low Stock"}
+                        </button>
                     </div>
+
+                    {showLowStock && lowStockVariants.length === 0 ? (
+                        <p style={{ textAlign: "center", marginTop: "20px" }}>
+                            No low stock variants found.
+                        </p>
+                    ) : null}
 
                     {adminOrders.map(order => (
                         <div
@@ -423,20 +458,36 @@ function App() {
                                                 padding: "10px 0"
                                             }}
                                         >
-                                            <p>
-                                                {history.oldStatus} → {history.newStatus}
-                                            </p>
-
-                                            <p>
-                                                {new Date(history.changedAt).toLocaleString()}
-                                            </p>
+                                            <p>{history.oldStatus} → {history.newStatus}</p>
+                                            <p>{new Date(history.changedAt).toLocaleString()}</p>
                                         </div>
                                     ))}
                                 </div>
                             )}
-
                         </div>
                     ))}
+
+                    {lowStockVariants.length > 0 && (
+                        <div style={{ maxWidth: "800px", margin: "30px auto" }}>
+                            <h2>Low Stock Variants</h2>
+
+                            {lowStockVariants.map(variant => (
+                                <div
+                                    key={variant.productVariantId}
+                                    style={{
+                                        border: "1px solid #ddd",
+                                        padding: "20px",
+                                        marginBottom: "15px"
+                                    }}
+                                >
+                                    <p>Product: {variant.productName}</p>
+                                    <p>Color: {variant.color}</p>
+                                    <p>Size: {variant.size}</p>
+                                    <p>Stock: {variant.stockQuantity}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {adminDashboard && (
                         <div style={{
