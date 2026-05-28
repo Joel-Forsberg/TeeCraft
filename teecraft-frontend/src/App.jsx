@@ -35,15 +35,18 @@ function App() {
 
     const [orders, setOrders] = useState([])
     const [showOrders, setShowOrders] = useState(false)
-
     const [token, setToken] = useState(localStorage.getItem("token") || "")
     const [role, setRole] = useState(localStorage.getItem("role") || "")
+
     const [showAdminPanel, setShowAdminPanel] = useState(false)
     const [adminDashboard, setAdminDashboard] = useState(null)
     const [adminOrders, setAdminOrders] = useState([])
     const [orderHistories, setOrderHistories] = useState({})
     const [lowStockVariants, setLowStockVariants] = useState([])
     const [showLowStock, setShowLowStock] = useState(false)
+
+    const [adminProducts, setAdminProducts] = useState([])
+    const [showAdminProducts, setShowAdminProducts] = useState(false)
 
     useEffect(() => {
         fetchProducts()
@@ -352,6 +355,112 @@ function App() {
                             No low stock variants found.
                         </p>
                     ) : null}
+
+                    {showAdminProducts && adminProducts.length > 0 && (
+                        <div style={{ maxWidth: "800px", margin: "30px auto" }}>
+                            <h2>Manage Products</h2>
+
+                            {adminProducts.map(product => (
+                                <div
+                                    key={product.productId}
+                                    style={{
+                                        border: "1px solid #ddd",
+                                        padding: "20px",
+                                        marginBottom: "15px"
+                                    }}
+                                >
+                                    <h3>{product.name}</h3>
+                                    <p>{product.description}</p>
+                                    <p>Price: {product.basePrice} kr</p>
+                                    <p>Category: {product.categoryName}</p>
+
+                                    <button
+                                        onClick={async () => {
+
+                                            const confirmDelete = window.confirm(
+                                                `Are you sure you want to delete ${product.name}?`
+                                            )
+
+                                            if (!confirmDelete) {
+                                                return
+                                            }
+
+                                            const response = await fetch(
+                                                `https://localhost:7042/api/Products/${product.productId}`,
+                                                {
+                                                    method: "DELETE",
+                                                    headers: {
+                                                        "Authorization": `Bearer ${token}`
+                                                    }
+                                                }
+                                            )
+
+                                            if (!response.ok) {
+                                                alert("Could not delete product")
+                                                return
+                                            }
+
+                                            setAdminProducts(
+                                                adminProducts.filter(
+                                                    p => p.productId !== product.productId
+                                                )
+                                            )
+
+                                            alert("Product deleted")
+                                        }}
+                                        style={{
+                                            padding: "10px 20px",
+                                            backgroundColor: "red",
+                                            color: "white",
+                                            border: "none",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <button
+                        onClick={async () => {
+
+                            if (showAdminProducts) {
+                                setShowAdminProducts(false)
+                                setAdminProducts([])
+                                return
+                            }
+
+                            const response = await fetch(
+                                "https://localhost:7042/api/Products",
+                                {
+                                    headers: {
+                                        "Authorization": `Bearer ${token}`
+                                    }
+                                }
+                            )
+
+                            if (!response.ok) {
+                                alert("Could not load products")
+                                return
+                            }
+
+                            const data = await response.json()
+
+                            setAdminProducts(data.items)
+                            setShowAdminProducts(true)
+                        }}
+                        style={{
+                            padding: "12px 25px",
+                            backgroundColor: "black",
+                            color: "white",
+                            border: "none",
+                            cursor: "pointer"
+                        }}
+                    >
+                        {showAdminProducts ? "Hide Products" : "Manage Products"}
+                    </button>
 
                     {adminOrders.map(order => (
                         <div
