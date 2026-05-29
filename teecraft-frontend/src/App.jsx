@@ -55,6 +55,11 @@ function App() {
     const [editImageUrl, setEditImageUrl] = useState("")
     const [editCategoryId, setEditCategoryId] = useState("")
 
+    const [editingStockVariantId, setEditingStockVariantId] = useState(null)
+    const [newStockQuantity, setNewStockQuantity] = useState("")
+    const [productVariants, setProductVariants] = useState([])
+    const [showVariants, setShowVariants] = useState(false)
+
     useEffect(() => {
         fetchProducts()
     }, [])
@@ -355,6 +360,44 @@ function App() {
                         >
                             {showLowStock ? "Hide Low Stock" : "Load Low Stock"}
                         </button>
+
+                        <button
+                            onClick={async () => {
+                                if (showVariants) {
+                                    setShowVariants(false)
+                                    setProductVariants([])
+                                    return
+                                }
+
+                                const response = await fetch(
+                                    "https://localhost:7042/api/ProductVariants",
+                                    {
+                                        headers: {
+                                            "Authorization": `Bearer ${token}`
+                                        }
+                                    }
+                                )
+
+                                if (!response.ok) {
+                                    alert("Could not load variants")
+                                    return
+                                }
+
+                                const data = await response.json()
+
+                                setProductVariants(data)
+                                setShowVariants(true)
+                            }}
+                            style={{
+                                padding: "12px 25px",
+                                backgroundColor: "black",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer"
+                            }}
+                        >
+                            {showVariants ? "Hide Variants" : "Manage Stock"}
+                        </button>
                     </div>
 
                     {showLowStock && lowStockVariants.length === 0 ? (
@@ -552,6 +595,85 @@ function App() {
                     >
                         {showAdminProducts ? "Hide Products" : "Manage Products"}
                     </button>
+
+                    {showVariants && productVariants.length > 0 && (
+                        <div style={{ maxWidth: "900px", margin: "30px auto" }}>
+                            <h2>Manage Stock</h2>
+
+                            {productVariants.map(variant => (
+                                <div
+                                    key={variant.productVariantId}
+                                    style={{
+                                        border: "1px solid #ddd",
+                                        padding: "20px",
+                                        marginBottom: "15px"
+                                    }}
+                                >
+                                    <h3>{variant.productName}</h3>
+                                    <p>Color: {variant.color}</p>
+                                    <p>Size: {variant.size}</p>
+                                    <p>Current stock: {variant.stockQuantity}</p>
+
+                                    <input
+                                        type="number"
+                                        placeholder="New stock quantity"
+                                        value={editingStockVariantId === variant.productVariantId ? newStockQuantity : ""}
+                                        onChange={(e) => {
+                                            setEditingStockVariantId(variant.productVariantId)
+                                            setNewStockQuantity(e.target.value)
+                                        }}
+                                        style={{
+                                            padding: "8px",
+                                            marginRight: "10px"
+                                        }}
+                                    />
+
+                                    <button
+                                        onClick={async () => {
+                                            const response = await fetch(
+                                                `https://localhost:7042/api/ProductVariants/${variant.productVariantId}/stock`,
+                                                {
+                                                    method: "PUT",
+                                                    headers: {
+                                                        "Content-Type": "application/json",
+                                                        "Authorization": `Bearer ${token}`
+                                                    },
+                                                    body: JSON.stringify({
+                                                        stockQuantity: Number(newStockQuantity)
+                                                    })
+                                                }
+                                            )
+
+                                            if (!response.ok) {
+                                                alert("Could not update stock")
+                                                return
+                                            }
+
+                                            setProductVariants(productVariants.map(v =>
+                                                v.productVariantId === variant.productVariantId
+                                                    ? { ...v, stockQuantity: Number(newStockQuantity) }
+                                                    : v
+                                            ))
+
+                                            setEditingStockVariantId(null)
+                                            setNewStockQuantity("")
+
+                                            alert("Stock updated")
+                                        }}
+                                        style={{
+                                            padding: "8px 15px",
+                                            backgroundColor: "black",
+                                            color: "white",
+                                            border: "none",
+                                            cursor: "pointer"
+                                        }}
+                                    >
+                                        Update Stock
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {adminOrders.map(order => (
                         <div
