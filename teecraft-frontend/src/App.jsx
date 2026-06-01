@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react"
+﻿import { useEffect, useState, useRef } from "react"
 import blackTee from "./assets/black-tee.png"
 import whiteTee from "./assets/white-tee.png"
 import navyTee from "./assets/navy-tee.png"
@@ -61,6 +61,8 @@ function App() {
     const [productVariants, setProductVariants] = useState([])
     const [showVariants, setShowVariants] = useState(false)
 
+    const homeRef = useRef(null)
+    const productsRef = useRef(null)
 
     const [newName, setNewName] = useState("")
     const [newDescription, setNewDescription] = useState("")
@@ -1820,9 +1822,19 @@ function App() {
                 </div>
 
                 <div>
-                    <span style={{ marginRight: "20px" }}>Home</span>
-                    <span style={{ marginRight: "20px" }}>Products</span>
+                    <span
+                        onClick={() => homeRef.current?.scrollIntoView({ behavior: "smooth" })}
+                        style={{ marginRight: "20px", cursor: "pointer" }}
+                    >
+                        Home
+                    </span>
 
+                    <span
+                        onClick={() => productsRef.current?.scrollIntoView({ behavior: "smooth" })}
+                        style={{ marginRight: "20px", cursor: "pointer" }}
+                    >
+                        Products
+                    </span>
                     {!token ? (
                         <>
                             <span
@@ -1888,7 +1900,11 @@ function App() {
                 </div>
             </nav>
 
-            <section style={{
+            <section
+                onClick={() =>
+                    productsRef.current?.scrollIntoView({ behavior: "smooth" })
+                }
+                style={{
                 padding: "80px",
                 textAlign: "center"
             }}>
@@ -1908,8 +1924,8 @@ function App() {
                 </button>
             </section>
 
-            <section style={{ padding: "40px 80px" }}>
-                <h2 style={{
+            <section ref={homeRef} style={{ padding: "40px 80px" }}>
+                <h2 ref={productsRef} style={{
                     textAlign: "center",
                     fontSize: "32px",
                     marginBottom: "30px"
