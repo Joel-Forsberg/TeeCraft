@@ -3,6 +3,7 @@ import blackTee from "./assets/black-tee.png"
 import whiteTee from "./assets/white-tee.png"
 import navyTee from "./assets/navy-tee.png"
 import redTee from "./assets/red-tee.png"
+import greenTee from "./assets/green-tee.png"
 
 function App() {
     const [products, setProducts] = useState([])
@@ -66,6 +67,13 @@ function App() {
     const [newBasePrice, setNewBasePrice] = useState("")
     const [newImageUrl, setNewImageUrl] = useState("")
     const [newCategoryId, setNewCategoryId] = useState("")
+
+    const [variantProductId, setVariantProductId] = useState("")
+    const [variantColor, setVariantColor] = useState("")
+    const [variantSize, setVariantSize] = useState("")
+    const [variantFit, setVariantFit] = useState("")
+    const [variantStockQuantity, setVariantStockQuantity] = useState("")
+    const [variantPrice, setVariantPrice] = useState("")
 
     useEffect(() => {
         fetchProducts()
@@ -527,6 +535,119 @@ function App() {
                             </div>
 
                             <h2>Manage Products</h2>
+
+                            <div
+                                style={{
+                                    maxWidth: "800px",
+                                    margin: "20px auto",
+                                    border: "1px solid #ddd",
+                                    padding: "20px"
+                                }}
+                            >
+                                <h2>Create Variant</h2>
+
+                                <select
+                                    value={variantProductId}
+                                    onChange={(e) => setVariantProductId(e.target.value)}
+                                >
+                                    <option value="">Select product</option>
+                                    {adminProducts.map(product => (
+                                        <option key={product.productId} value={product.productId}>
+                                            {product.name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Color"
+                                    value={variantColor}
+                                    onChange={(e) => setVariantColor(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Size"
+                                    value={variantSize}
+                                    onChange={(e) => setVariantSize(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Fit"
+                                    value={variantFit}
+                                    onChange={(e) => setVariantFit(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Stock Quantity"
+                                    type="number"
+                                    value={variantStockQuantity}
+                                    onChange={(e) => setVariantStockQuantity(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Price"
+                                    type="number"
+                                    value={variantPrice}
+                                    onChange={(e) => setVariantPrice(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <button
+                                    onClick={async () => {
+                                        const response = await fetch(
+                                            "https://localhost:7042/api/ProductVariants",
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    "Authorization": `Bearer ${token}`
+                                                },
+                                                body: JSON.stringify({
+                                                    productId: Number(variantProductId),
+                                                    color: variantColor,
+                                                    size: variantSize,
+                                                    fit: variantFit,
+                                                    stockQuantity: Number(variantStockQuantity),
+                                                    price: Number(variantPrice)
+                                                })
+                                            }
+                                        )
+
+                                        if (!response.ok) {
+                                            alert("Could not create variant")
+                                            return
+                                        }
+
+                                        alert("Variant created")
+
+                                        setVariantProductId("")
+                                        setVariantColor("")
+                                        setVariantSize("")
+                                        setVariantFit("")
+                                        setVariantStockQuantity("")
+                                        setVariantPrice("")
+                                    }}
+                                    style={{
+                                        padding: "10px 20px",
+                                        backgroundColor: "green",
+                                        color: "white",
+                                        border: "none",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    Create Variant
+                                </button>
+                            </div>
 
                             {adminProducts.map(product => (
                                 <div
@@ -1552,13 +1673,17 @@ function App() {
                                     ? whiteTee
                                     : selectedProduct.name === "Navy Blue Tee"
                                         ? navyTee
-                                        : redTee
+                                        : selectedProduct.name === "Navy Blue Tee"
+                                            ? navyTee
+                                            : selectedProduct.name === "Green Tee"
+                                                ? greenTee
+                                                : redTee
                         }
                         alt={selectedProduct.name}
                         style={{
                             width: "45%",
-                            height: "500px",
-                            objectFit: "cover"
+                            height: "700px",
+                            objectFit: "contain"
                         }}
                     />
 
@@ -1865,13 +1990,15 @@ function App() {
                                                 ? whiteTee
                                                 : product.name === "Navy Blue Tee"
                                                     ? navyTee
-                                                    : redTee
+                                                    : product.name === "Green Tee"
+                                                        ? greenTee
+                                                        : redTee
                                     }
                                     alt={product.name}
                                     style={{
                                         width: "100%",
-                                        height: "220px",
-                                        objectFit: "cover",
+                                        height: "350px",
+                                        objectFit: "contain",
                                         marginBottom: "15px"
                                     }}
                                 />
