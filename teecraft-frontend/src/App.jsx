@@ -60,6 +60,13 @@ function App() {
     const [productVariants, setProductVariants] = useState([])
     const [showVariants, setShowVariants] = useState(false)
 
+
+    const [newName, setNewName] = useState("")
+    const [newDescription, setNewDescription] = useState("")
+    const [newBasePrice, setNewBasePrice] = useState("")
+    const [newImageUrl, setNewImageUrl] = useState("")
+    const [newCategoryId, setNewCategoryId] = useState("")
+
     useEffect(() => {
         fetchProducts()
     }, [])
@@ -406,8 +413,119 @@ function App() {
                         </p>
                     ) : null}
 
-                    {showAdminProducts && adminProducts.length > 0 && (
+                    {showAdminProducts && (
                         <div style={{ maxWidth: "800px", margin: "30px auto" }}>
+                            <div
+                                style={{
+                                    maxWidth: "800px",
+                                    margin: "20px auto",
+                                    border: "1px solid #ddd",
+                                    padding: "20px"
+                                }}
+                            >
+                                <h2>Create Product</h2>
+
+                                <input
+                                    placeholder="Name"
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Description"
+                                    value={newDescription}
+                                    onChange={(e) => setNewDescription(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Price"
+                                    type="number"
+                                    value={newBasePrice}
+                                    onChange={(e) => setNewBasePrice(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Image URL"
+                                    value={newImageUrl}
+                                    onChange={(e) => setNewImageUrl(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <input
+                                    placeholder="Category Id"
+                                    type="number"
+                                    value={newCategoryId}
+                                    onChange={(e) => setNewCategoryId(e.target.value)}
+                                />
+
+                                <br /><br />
+
+                                <button
+                                    onClick={async () => {
+                                        const response = await fetch(
+                                            "https://localhost:7042/api/Products",
+                                            {
+                                                method: "POST",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    "Authorization": `Bearer ${token}`
+                                                },
+                                                body: JSON.stringify({
+                                                    name: newName,
+                                                    description: newDescription,
+                                                    basePrice: Number(newBasePrice),
+                                                    imageUrl: newImageUrl,
+                                                    categoryId: Number(newCategoryId)
+                                                })
+                                            }
+                                        )
+
+                                        if (!response.ok) {
+                                            alert("Could not create product")
+                                            return
+                                        }
+
+                                        const refreshedResponse = await fetch(
+                                            "https://localhost:7042/api/Products",
+                                            {
+                                                headers: {
+                                                    "Authorization": `Bearer ${token}`
+                                                }
+                                            }
+                                        )
+
+                                        if (refreshedResponse.ok) {
+                                            const refreshedData = await refreshedResponse.json()
+                                            setAdminProducts(refreshedData.items)
+                                        }
+
+                                        alert("Product created")
+
+                                        setNewName("")
+                                        setNewDescription("")
+                                        setNewBasePrice("")
+                                        setNewImageUrl("")
+                                        setNewCategoryId("")
+                                    }}
+                                    style={{
+                                        padding: "10px 20px",
+                                        backgroundColor: "green",
+                                        color: "white",
+                                        border: "none",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    Create Product
+                                </button>
+                            </div>
+
                             <h2>Manage Products</h2>
 
                             {adminProducts.map(product => (
@@ -447,7 +565,6 @@ function App() {
 
                                     <button
                                         onClick={async () => {
-
                                             const confirmDelete = window.confirm(
                                                 `Are you sure you want to delete ${product.name}?`
                                             )
@@ -489,18 +606,42 @@ function App() {
                                     >
                                         Delete
                                     </button>
+
                                     {editingProductId === product.productId && (
-                                        <div style={{
-                                            marginTop: "20px",
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            gap: "10px"
-                                        }}>
-                                            <input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                                            <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
-                                            <input value={editBasePrice} onChange={(e) => setEditBasePrice(e.target.value)} />
-                                            <input value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)} />
-                                            <input value={editCategoryId} onChange={(e) => setEditCategoryId(e.target.value)} />
+                                        <div
+                                            style={{
+                                                marginTop: "20px",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: "10px"
+                                            }}
+                                        >
+                                            <input
+                                                value={editName}
+                                                onChange={(e) => setEditName(e.target.value)}
+                                            />
+
+                                            <input
+                                                value={editDescription}
+                                                onChange={(e) => setEditDescription(e.target.value)}
+                                            />
+
+                                            <input
+                                                type="number"
+                                                value={editBasePrice}
+                                                onChange={(e) => setEditBasePrice(e.target.value)}
+                                            />
+
+                                            <input
+                                                value={editImageUrl}
+                                                onChange={(e) => setEditImageUrl(e.target.value)}
+                                            />
+
+                                            <input
+                                                type="number"
+                                                value={editCategoryId}
+                                                onChange={(e) => setEditCategoryId(e.target.value)}
+                                            />
 
                                             <button
                                                 onClick={async () => {
@@ -557,6 +698,8 @@ function App() {
                         </div>
                     )}
 
+                </section>
+                    
                     <button
                         onClick={async () => {
 
@@ -850,7 +993,7 @@ function App() {
                             </div>
                         </div>
                     )}
-                </section>
+                
             </div>
         )
     }
