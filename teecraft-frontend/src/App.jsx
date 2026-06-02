@@ -78,6 +78,11 @@ function App() {
     const [variantStockQuantity, setVariantStockQuantity] = useState("")
     const [variantPrice, setVariantPrice] = useState("")
 
+    const [reviews, setReviews] = useState([])
+    const [reviewRating, setReviewRating] = useState(5)
+    const [reviewComment, setReviewComment] = useState("")
+    const [currentReviewIndex, setCurrentReviewIndex] = useState(0)
+
     useEffect(() => {
         fetchProducts()
     }, [])
@@ -1818,6 +1823,184 @@ function App() {
                         </button>
                     </div>
                 </section>
+
+                <div style={{ marginBottom: "20px" }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: "10px"
+                        }}
+                    >
+
+
+                    <select
+                        value={reviewRating}
+                        onChange={(e) => setReviewRating(Number(e.target.value))}
+                        style={{
+                            padding: "8px",
+                            marginBottom: "10px",
+                            width: "350px"
+                        }}
+                    >
+                        <option value="5">★★★★★</option>
+                        <option value="4">★★★★☆</option>
+                        <option value="3">★★★☆☆</option>
+                        <option value="2">★★☆☆☆</option>
+                        <option value="1">★☆☆☆☆</option>
+                    </select>
+
+                    <textarea
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        placeholder="Write your review..."
+                        style={{
+                            width: "350px",
+                            height: "80px",
+                            marginBottom: "10px",
+                            padding: "10px"
+                        }}
+                    />
+
+                    <button
+                        onClick={async () => {
+                            const response = await fetch(
+                                "https://localhost:7042/api/Reviews",
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "Authorization": `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({
+                                        productId: selectedProduct.productId,
+                                        rating: reviewRating,
+                                        comment: reviewComment
+                                    })
+                                }
+                            )
+
+                            if (response.ok) {
+
+                                const reviewsResponse = await fetch(
+                                    `https://localhost:7042/api/Reviews/product/${selectedProduct.productId}`,
+                                    {
+                                        headers: {
+                                            "Authorization": `Bearer ${token}`
+                                        }
+                                    }
+                                )
+
+                                if (reviewsResponse.ok) {
+                                    const data = await reviewsResponse.json()
+                                    setReviews(data)
+                                }
+
+                                setReviewComment("")
+                                setReviewRating(5)
+
+                                alert("Review submitted!")
+                            }
+                            else {
+                                alert("Could not submit review")
+                            }
+                        }}
+                        style={{
+                            padding: "10px 20px",
+                            backgroundColor: "black",
+                            color: "white",
+                            border: "none",
+                            cursor: "pointer"
+                        }}
+                    >
+                        Submit Review
+                        </button>
+                    </div>
+
+                </div>
+
+                <section
+                    style={{
+                        maxWidth: "900px",
+                        margin: "40px auto",
+                        padding: "20px"
+                    }}
+                >
+                    <h3>Reviews</h3>
+
+                    {reviews.length > 0 ? (
+                        <div
+                            style={{
+                                borderTop: "1px solid #ddd",
+                                padding: "25px 0",
+                                fontSize: "16px",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                gap: "30px"
+                            }}
+                        >
+                            <button
+                                onClick={() =>
+                                    setCurrentReviewIndex(
+                                        currentReviewIndex === 0
+                                            ? reviews.length - 1
+                                            : currentReviewIndex - 1
+                                    )
+                                }
+                                style={{
+                                    padding: "10px 15px",
+                                    backgroundColor: "black",
+                                    color: "white",
+                                    border: "none",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                ‹
+                            </button>
+
+                            <div style={{ width: "350px", textAlign: "center" }}>
+                                <p>
+                                    {"★".repeat(reviews[currentReviewIndex].rating)}
+                                    {"☆".repeat(5 - reviews[currentReviewIndex].rating)}
+                                </p>
+
+                                <p>
+                                    <strong>{reviews[currentReviewIndex].customerName}</strong>
+                                </p>
+
+                                <p>{reviews[currentReviewIndex].comment}</p>
+
+                                <p style={{ fontSize: "13px", color: "#777" }}>
+                                    {currentReviewIndex + 1} / {reviews.length}
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() =>
+                                    setCurrentReviewIndex(
+                                        currentReviewIndex === reviews.length - 1
+                                            ? 0
+                                            : currentReviewIndex + 1
+                                    )
+                                }
+                                style={{
+                                    padding: "10px 15px",
+                                    backgroundColor: "black",
+                                    color: "white",
+                                    border: "none",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                ›
+                            </button>
+                        </div>
+                    ) : (
+                        <p>No reviews yet.</p>
+                    )}
+                </section>
+
             </div>
         )
     }
@@ -1988,6 +2171,7 @@ function App() {
                     <option value="White">White</option>
                     <option value="Navy Blue">Navy Blue</option>
                     <option value="Red">Red</option>
+                    <option value="Green">Green</option>
                 </select>
 
                 <select
@@ -2065,7 +2249,24 @@ function App() {
                                 <p>{product.basePrice} kr</p>
 
                                 <button
-                                    onClick={() => setSelectedProduct(product)}
+                                    onClick={async () => {
+                                        setSelectedProduct(product)
+
+                                        const response = await fetch(
+                                            `https://localhost:7042/api/Reviews/product/${product.productId}`,
+                                            {
+                                                headers: {
+                                                    "Authorization": `Bearer ${token}`
+                                                }
+                                            }
+                                        )
+
+                                        if (response.ok) {
+                                            const data = await response.json()
+                                            setReviews(data)
+                                            setCurrentReviewIndex(0)
+                                        }
+                                    }}
                                     style={{
                                         padding: "10px 20px",
                                         backgroundColor: "black",
