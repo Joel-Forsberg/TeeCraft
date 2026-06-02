@@ -27,12 +27,18 @@ public class OrdersController : ControllerBase
     public async Task<ActionResult<IEnumerable<OrderDto>>> GetOrders()
     {
         var orders = await _context.Orders
+            .Include(o => o.Customer)
+            .ThenInclude(c => c.User)
             .Include(o => o.OrderItems)
-            .Include(o => o.Payment)
+            .ThenInclude(i => i.ProductVariant)
+            .ThenInclude(pv => pv.Product)
             .Select(o => new OrderDto
             {
                 OrderId = o.OrderId,
                 CustomerId = o.CustomerId,
+                CustomerName = o.Customer.FirstName + " " + o.Customer.LastName,
+                CustomerEmail = o.Customer.User.Email,
+                CustomerAddress = o.Customer.Address,
                 OrderDate = o.OrderDate,
                 TotalAmount = o.TotalAmount,
                 Status = o.Status,
@@ -42,6 +48,8 @@ public class OrdersController : ControllerBase
                 {
                     OrderItemId = i.OrderItemId,
                     ProductVariantId = i.ProductVariantId,
+                    ProductName = i.ProductVariant.Product.Name,
+                    Size = i.ProductVariant.Size,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice
                 }).ToList()
@@ -137,6 +145,7 @@ public class OrdersController : ControllerBase
             {
                 OrderItemId = i.OrderItemId,
                 ProductVariantId = i.ProductVariantId,
+                Size = i.ProductVariant.Size,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice
             }).ToList()
@@ -184,6 +193,7 @@ public class OrdersController : ControllerBase
                 {
                     OrderItemId = i.OrderItemId,
                     ProductVariantId = i.ProductVariantId,
+                    Size = i.ProductVariant.Size,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice
                 }).ToList()
@@ -257,8 +267,8 @@ public class OrdersController : ControllerBase
         var order = await _context.Orders
             .Include(o => o.Customer)
             .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.ProductVariant)
-                    .ThenInclude(pv => pv.Product)
+            .ThenInclude(i => i.ProductVariant)
+            .ThenInclude(pv => pv.Product)
             .FirstOrDefaultAsync(o => o.OrderId == id);
 
         if (order == null)
@@ -278,6 +288,7 @@ public class OrdersController : ControllerBase
             {
                 ProductVariantId = oi.ProductVariantId,
                 ProductName = oi.ProductVariant.Product.Name,
+                Size = oi.ProductVariant.Size,
                 Quantity = oi.Quantity,
                 UnitPrice = oi.UnitPrice
             }).ToList()

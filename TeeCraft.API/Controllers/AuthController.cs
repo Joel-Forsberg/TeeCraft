@@ -58,6 +58,7 @@ public class AuthController : ControllerBase
             UserId = user.UserId,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
+            Address = dto.Address,
             PhoneNumber = dto.PhoneNumber
         };
 

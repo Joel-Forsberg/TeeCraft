@@ -5,6 +5,11 @@ public class OrderDto
     public int OrderId { get; set; }
 
     public int CustomerId { get; set; }
+    public string CustomerName { get; set; } = string.Empty;
+
+    public string CustomerEmail { get; set; } = string.Empty;
+
+    public string CustomerAddress { get; set; } = string.Empty;
 
     public DateTime OrderDate { get; set; }
 

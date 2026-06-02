@@ -84,6 +84,7 @@ public class CustomersController : ControllerBase
             UserId = dto.UserId,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
+            Address = dto.Address,
             PhoneNumber = dto.PhoneNumber
         };
 

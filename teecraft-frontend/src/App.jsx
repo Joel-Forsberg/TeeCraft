@@ -32,6 +32,7 @@ function App() {
     const [password, setPassword] = useState("")
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
+    const [address, setAddress] = useState("")
     const [phoneNumber, setPhoneNumber] = useState("")
 
     const [orders, setOrders] = useState([])
@@ -136,6 +137,7 @@ function App() {
                 password,
                 firstName,
                 lastName,
+                address,
                 phoneNumber
             })
         })
@@ -954,8 +956,36 @@ function App() {
                         >
                             <h3>Order #{order.orderId}</h3>
 
+                            <p>Customer: {order.customerName}</p>
+                            <p>Email: {order.customerEmail}</p>
+                            <p>Address: {order.customerAddress}</p>
                             <p>Status: {order.status}</p>
                             <p>Total: {order.totalAmount} kr</p>
+                            <p>Order date: {new Date(order.orderDate).toLocaleString()}</p>
+                            <p>Payment: {order.paymentMethod}</p>
+                            <p>Payment status: {order.paymentStatus}</p>
+
+                            <h4>Items</h4>
+
+                            {order.items && order.items.length > 0 ? (
+                                order.items.map(item => (
+                                    <div
+                                        key={item.orderItemId}
+                                        style={{
+                                            borderTop: "1px solid #ddd",
+                                            paddingTop: "10px",
+                                            marginTop: "10px"
+                                        }}
+                                    >
+                                        <p>Product: {item.productName}</p>
+                                        <p>Size: {item.size}</p>
+                                        <p>Quantity: {item.quantity}</p>
+                                        <p>Unit price: {item.unitPrice} kr</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No items found for this order.</p>
+                            )}
 
                             <select
                                 value={order.status}
@@ -1271,10 +1301,21 @@ function App() {
 
                         <input
                             type="text"
+                            placeholder="Address"
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            style={{ padding: "12px", fontSize: "16px" }}
+                        />
+
+                        <input
+                            type="text"
                             placeholder="Phone number"
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
-                            style={{ padding: "12px", fontSize: "16px" }}
+                            style={{
+                                padding: "12px",
+                                fontSize: "16px"
+                            }}
                         />
 
                         <button
