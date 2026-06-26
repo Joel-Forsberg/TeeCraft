@@ -8,6 +8,8 @@ import greenTee from "./assets/green-tee.png"
 function App() {
     const [products, setProducts] = useState([])
     const [selectedProduct, setSelectedProduct] = useState(null)
+    const [currentPage, setCurrentPage] = useState("home")
+
 
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem("cart")
@@ -257,6 +259,26 @@ function App() {
     const selectedVariant = selectedProduct?.productVariants.find(
         variant => variant.productVariantId === Number(selectedVariantId)
     )
+
+    const openProductFromSearch = async (product) => {
+        setSelectedProduct(product)
+        setSearchTerm("")
+
+        const response = await fetch(
+            `https://localhost:7042/api/Reviews/product/${product.productId}`,
+            {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        )
+
+        if (response.ok) {
+            const data = await response.json()
+            setReviews(data)
+            setCurrentReviewIndex(0)
+        }
+    }
 
     if (showAdminPanel) {
         return (
@@ -1685,6 +1707,106 @@ function App() {
                         TeeCraft
                     </h2>
 
+                    <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        border: "1px solid #777",
+                        padding: "8px 12px",
+                        width: "320px",
+                        backgroundColor: "transparent",
+                        position: "relative"
+                    }}>
+                        <span style={{ color: "white", fontSize: "16px" }}>⌕</span>
+
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                                width: "100%",
+                                backgroundColor: "transparent",
+                                border: "none",
+                                color: "white",
+                                outline: "none",
+                                fontSize: "14px"
+                            }}
+                        />
+
+                        {searchTerm && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "100%",
+                                    left: "0",
+                                    marginTop: "8px",
+                                    width: "100%",
+                                    backgroundColor: "white",
+                                    color: "black",
+                                    border: "1px solid #ddd",
+                                    borderRadius: "8px",
+                                    overflow: "hidden",
+                                    zIndex: 1000,
+                                    boxShadow: "0 8px 20px rgba(0,0,0,0.2)"
+                                }}
+                            >
+                                {products
+                                    .filter(product =>
+                                        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+                                    )
+                                    .slice(0, 5)
+                                    .map(product => (
+                                        <div
+                                            key={product.productId}
+                                            onClick={() => openProductFromSearch(product)}
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "10px",
+                                                padding: "10px",
+                                                cursor: "pointer",
+                                                borderBottom: "1px solid #eee"
+                                            }}
+                                        >
+                                            <img
+                                                src={
+                                                    product.name === "Black Tee"
+                                                        ? blackTee
+                                                        : product.name === "White Tee"
+                                                            ? whiteTee
+                                                            : product.name === "Navy Blue Tee"
+                                                                ? navyTee
+                                                                : product.name === "Green Tee"
+                                                                    ? greenTee
+                                                                    : redTee
+                                                }
+                                                alt={product.name}
+                                                style={{
+                                                    width: "45px",
+                                                    height: "55px",
+                                                    objectFit: "cover"
+                                                }}
+                                            />
+
+                                            <div>
+                                                <div style={{ fontWeight: "bold" }}>
+                                                    {product.name}
+                                                </div>
+
+                                                <div style={{
+                                                    fontSize: "13px",
+                                                    color: "#666"
+                                                }}>
+                                                    {product.basePrice} kr
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        )}
+                    </div>
+
                     <span
                         onClick={() => setShowCart(true)}
                         style={{ color: "white", cursor: "pointer" }}
@@ -2025,7 +2147,8 @@ function App() {
                     padding: "8px 12px",
                     width: "320px",
                     backgroundColor: "transparent",
-                    marginLeft: "120px"
+                    marginLeft: "120px",
+                    position: "relative"
                 }}>
                     <span style={{ color: "white", fontSize: "16px" }}>⌕</span>
 
@@ -2043,18 +2166,80 @@ function App() {
                             fontSize: "14px"
                         }}
                     />
+
+                    {searchTerm && (
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: "100%",
+                                left: "0",
+                                marginTop: "8px",
+                                width: "100%",
+                                backgroundColor: "white",
+                                color: "black",
+                                border: "1px solid #ddd",
+                                zIndex: 1000,
+                                borderRadius: "8px",
+                                overflow: "hidden",
+                                boxShadow: "0 8px 20px rgba(0,0,0,0.2)"
+                            }}
+                        >
+                            {products
+                                .filter(product =>
+                                    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+                                )
+                                .slice(0, 5)
+                                .map(product => (
+                                    <div
+                                        key={product.productId}
+                                        onClick={() => openProductFromSearch(product)}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "10px",
+                                            padding: "10px",
+                                            cursor: "pointer",
+                                            borderBottom: "1px solid #eee"
+                                        }}
+                                    >
+                                        <img
+                                            src={
+                                                product.name === "Black Tee"
+                                                    ? blackTee
+                                                    : product.name === "White Tee"
+                                                        ? whiteTee
+                                                        : product.name === "Navy Blue Tee"
+                                                            ? navyTee
+                                                            : product.name === "Green Tee"
+                                                                ? greenTee
+                                                                : redTee
+                                            }
+                                            alt={product.name}
+                                            style={{
+                                                width: "45px",
+                                                height: "55px",
+                                                objectFit: "cover"
+                                            }}
+                                        />
+
+                                        <span>{product.name}</span>
+                                    </div>
+                                ))}
+                        </div>
+                    )}
+
                 </div>
 
                 <div>
                     <span
-                        onClick={() => homeRef.current?.scrollIntoView({ behavior: "smooth" })}
+                        onClick={() => setCurrentPage("home")}
                         style={{ marginRight: "20px", cursor: "pointer" }}
                     >
                         Home
                     </span>
 
                     <span
-                        onClick={() => productsRef.current?.scrollIntoView({ behavior: "smooth" })}
+                        onClick={() => setCurrentPage("products")}
                         style={{ marginRight: "20px", cursor: "pointer" }}
                     >
                         Products
@@ -2124,38 +2309,70 @@ function App() {
                 </div>
             </nav>
 
+            {currentPage === "home" && (
+                <section
+                    style={{
+                        minHeight: "650px",
+                        padding: "80px",
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-start",
+                        paddingTop: "140px",
+                        alignItems: "center",
+                        background: "linear-gradient(135deg, #d9f99d 0%, #86efac 35%, #67e8f9 70%, #bfdbfe 100%)",
+                        color: "#111"
+                    }}
+                >
+                    <h1 style={{
+                        fontSize: "72px",
+                        marginBottom: "30px"
+                    }}>
+                        TeeCraft
+                    </h1>
+
+                    <h2 style={{
+                        fontSize: "42px",
+                        marginBottom: "25px",
+                        fontWeight: "400"
+                    }}>
+                        Premium oversized t-shirts
+                    </h2>
+
+                    <p style={{
+                        fontSize: "22px",
+                        marginBottom: "50px"
+                    }}>
+                        Clean fits, bold colors and everyday comfort.
+                    </p>
+
+                    <button
+                        onClick={() => setCurrentPage("products")}
+                        style={{
+                            padding: "18px 50px",
+                            borderRadius: "30px",
+                            fontSize: "18px",
+                            cursor: "pointer"
+                        }}
+                    >
+                        Shop Now
+                    </button>
+                </section>
+            )}
+
+            {currentPage === "products" && (
             <section
-                onClick={() =>
-                    productsRef.current?.scrollIntoView({ behavior: "smooth" })
-                }
+                ref={homeRef}
                 style={{
-                padding: "80px",
-                textAlign: "center"
-            }}>
-                <h1 style={{ fontSize: "60px" }}>Premium T-Shirts</h1>
-                <p style={{ fontSize: "20px" }}>T-shirts for modern fashion.</p>
-
-                <button style={{
-                    marginTop: "20px",
-                    padding: "15px 30px",
-                    backgroundColor: "black",
-                    color: "white",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "16px"
-                }}>
-                    Shop Now
-                </button>
-            </section>
-
-            <section ref={homeRef} style={{ padding: "40px 80px" }}>
-                <h2 ref={productsRef} style={{
-                    textAlign: "center",
-                    fontSize: "32px",
-                    marginBottom: "30px"
-                }}>
-                    Featured Products
+                    padding: "40px 80px",
+                    background: "linear-gradient(135deg, #d9f7a1 0%, #7be0d8 50%, #9ec9f5 100%)",
+                    minHeight: "100vh"
+                }}
+            >
+                <h2 ref={productsRef}>
+                    Products
                 </h2>
+
 
                 <select
                     value={selectedColor}
@@ -2218,9 +2435,12 @@ function App() {
                                 key={product.productId}
                                 style={{
                                     width: "250px",
-                                    border: "1px solid #ddd",
+                                    backgroundColor: "white",
+                                    border: "2px solid #333",
+                                    borderRadius: "16px",
                                     padding: "20px",
-                                    textAlign: "center"
+                                    textAlign: "center",
+                                    boxShadow: "0 8px 20px rgba(0,0,0,0.15)"
                                 }}
                             >
                                 <img
@@ -2249,24 +2469,7 @@ function App() {
                                 <p>{product.basePrice} kr</p>
 
                                 <button
-                                    onClick={async () => {
-                                        setSelectedProduct(product)
-
-                                        const response = await fetch(
-                                            `https://localhost:7042/api/Reviews/product/${product.productId}`,
-                                            {
-                                                headers: {
-                                                    "Authorization": `Bearer ${token}`
-                                                }
-                                            }
-                                        )
-
-                                        if (response.ok) {
-                                            const data = await response.json()
-                                            setReviews(data)
-                                            setCurrentReviewIndex(0)
-                                        }
-                                    }}
+                                    onClick={() => openProductFromSearch(product)}
                                     style={{
                                         padding: "10px 20px",
                                         backgroundColor: "black",
@@ -2280,7 +2483,8 @@ function App() {
                             </div>
                         ))}
                 </div>
-            </section>
+                </section>
+            )}
         </div>
     )
 }
