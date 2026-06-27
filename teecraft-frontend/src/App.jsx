@@ -2116,35 +2116,48 @@ function App() {
                             </div>
                         ))}
 
-                        <button
-                            onClick={() => {
-                                if (!selectedVariantId) {
-                                    alert("Please select a variant first.")
-                                    return
-                                }
-
-                                const selectedVariant = selectedProduct.productVariants.find(
-                                    variant => variant.productVariantId === Number(selectedVariantId)
-                                )
-
-                                addToCart({
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            gap: "15px",
+                            marginTop: "25px"
+                        }}>
+                            <button
+                                onClick={() => addToCart({
                                     ...selectedProduct,
                                     selectedVariant: selectedVariant
-                                })
-                            }}
-                            style={{
-                                marginTop: "20px",
-                                padding: "15px 30px",
-                                backgroundColor: "black",
-                                color: "white",
-                                border: "none",
-                                cursor: "pointer",
-                                fontSize: "16px"
-                            }}
-                        >
-                            Add to Cart
-                        </button>
-                    </div>
+                                })}
+                                style={{
+                                    padding: "15px 30px",
+                                    backgroundColor: "#111",
+                                    color: "white",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "16px"
+                                }}
+                            >
+                                Add to Cart
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    setSelectedProduct(null)
+                                    setShowCart(true)
+                                }}
+                                style={{
+                                    padding: "15px 30px",
+                                    backgroundColor: "#198754",  
+                                    color: "white",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "16px",
+                                    fontWeight: "600"
+                                }}
+                            >
+                                View Cart
+                            </button>
+                            </div>
+                        </div>
                 </section>
 
                 <div style={{ marginBottom: "20px" }}>
