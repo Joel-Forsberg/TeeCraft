@@ -85,6 +85,9 @@ function App() {
     const [reviewComment, setReviewComment] = useState("")
     const [currentReviewIndex, setCurrentReviewIndex] = useState(0)
 
+    const [showThankYou, setShowThankYou] = useState(false)
+    const [lastOrder, setLastOrder] = useState(null)
+
     useEffect(() => {
         fetchProducts()
     }, [])
@@ -99,6 +102,26 @@ function App() {
             .then(data => {
                 setProducts(data.items)
             })
+    }
+
+    const fetchMyOrders = async () => {
+        const response = await fetch("https://localhost:7042/api/Orders/my-orders", {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+
+        if (!response.ok) {
+            alert("Could not load orders")
+            return
+        }
+
+        const data = await response.json()
+
+        console.log(data)
+
+        setOrders(data)
+        setShowOrders(true)
     }
 
     const loginUser = async () => {
@@ -290,7 +313,19 @@ function App() {
                     display: "flex",
                     justifyContent: "space-between"
                 }}>
-                    <h2>TeeCraft Admin</h2>
+
+                    <h2
+                        style={{
+                            color: "white",
+                            cursor: "pointer"
+                        }}
+                        onClick={() => {
+                            setShowAdminPanel(false)
+                            setCurrentPage("home")
+                        }}
+                    >
+                        TeeCraft Admin
+                    </h2>
 
                     <span
                         onClick={() => setShowAdminPanel(false)}
@@ -975,10 +1010,11 @@ function App() {
                             key={order.orderId}
                             style={{
                                 border: "1px solid #ddd",
-                                padding: "20px",
-                                marginBottom: "20px",
-                                maxWidth: "700px",
-                                margin: "20px auto"
+                                borderRadius: "10px",
+                                padding: "25px",
+                                marginBottom: "25px",
+                                backgroundColor: "#fafafa",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
                             }}
                         >
                             <h3>Order #{order.orderId}</h3>
@@ -1522,7 +1558,18 @@ function App() {
                     display: "flex",
                     justifyContent: "space-between"
                 }}>
-                    <h2>TeeCraft</h2>
+                    <h2
+                        style={{
+                            color: "white",
+                            cursor: "pointer"
+                        }}
+                        onClick={() => {
+                            setShowCheckout(false)
+                            setCurrentPage("home")
+                        }}
+                    >
+                        TeeCraft
+                    </h2>
 
                     <span
                         onClick={() => {
@@ -1610,8 +1657,36 @@ function App() {
                                 return
                             }
 
-                            alert("Purchase completed!")
+                            const order = await response.json()
 
+                            const paymentResponse = await fetch("https://localhost:7042/api/Payments/simulate", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "Authorization": `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    orderId: order.orderId,
+                                    paymentMethod: "Card",
+                                    shouldSucceed: true
+                                })
+                            })
+
+                            if (!paymentResponse.ok) {
+                                alert("Order created, but payment failed.")
+                                return
+                            }
+
+                            const paymentResult = await paymentResponse.json()
+
+                            if (paymentResult.paymentStatus !== "Paid") {
+                                alert("Order created, but payment was not approved.")
+                                return
+                            }
+
+                            alert("Purchase completed and payment approved!")
+
+                            setLastOrder(order)
                             setCart([])
                             localStorage.removeItem("cart")
                             setCustomerName("")
@@ -1620,6 +1695,7 @@ function App() {
                             setShowCheckout(false)
                             setShowCart(false)
                             setSelectedProduct(null)
+                            setShowThankYou(true)
 
                             fetchProducts()
                         }}
@@ -1639,6 +1715,123 @@ function App() {
             </div>
         )
     }
+
+
+    if (showThankYou) {
+        return (
+            <div>
+                <nav style={{
+                    backgroundColor: "#111",
+                    color: "white",
+                    padding: "20px",
+                    display: "flex",
+                    justifyContent: "space-between"
+                }}>
+                    <h2>TeeCraft</h2>
+                </nav>
+
+                <section style={{
+                    maxWidth: "600px",
+                    margin: "0 auto",
+                    textAlign: "center",
+                    paddingTop: "100px"
+                }}>
+                    <div
+                        style={{
+                            width: "90px",
+                            height: "90px",
+                            margin: "0 auto 30px",
+                            borderRadius: "50%",
+                            border: "4px solid green",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            color: "green",
+                            fontSize: "48px",
+                            fontWeight: "bold"
+                        }}
+                    >
+                        ✓
+                    </div>
+
+                    <h1
+                        style={{
+                            fontSize: "52px",
+                            lineHeight: "65px",
+                            marginBottom: "25px",
+                            fontWeight: "700"
+                        }}
+                    >
+                        Thank you for your purchase!
+                    </h1>
+
+                    <p style={{
+                        fontSize: "20px",
+                        color: "#555",
+                        marginBottom: "25px"
+                    }}>
+                        Your payment has been approved.
+                    </p>
+
+                    {lastOrder && (
+                        <>
+                            <p><strong>Order Number:</strong> #{lastOrder.orderId}</p>
+                            <p><strong>Total Paid:</strong> {lastOrder.totalAmount} kr</p>
+                            <p><strong>Payment Status:</strong> Paid</p>
+                        </>
+                    )}
+
+                    <p style={{
+                        marginTop: "20px",
+                        color: "#666",
+                        lineHeight: "1.6"
+                    }}>
+                        We've received your order and it's now being processed.
+                        You can view all your purchases under <strong>My Orders</strong>.
+                    </p>
+
+                    <div style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        gap: "20px",
+                        marginTop: "35px"
+                    }}>
+                        <button
+                            onClick={() => setShowThankYou(false)}
+                            style={{
+                                padding: "15px 30px",
+                                backgroundColor: "#111",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "16px"
+                            }}
+                        >
+                            Continue Shopping
+                        </button>
+
+                        <button
+                            onClick={async () => {
+                                setShowThankYou(false)
+                                await fetchMyOrders()
+                            }}
+                            style={{
+                                padding: "15px 30px",
+                                backgroundColor: "green",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "16px"
+                            }}
+                        >
+                            View My Orders
+                        </button>
+                    </div>
+                </section>
+            </div>
+        )
+    }
+
     if (showOrders) {
         return (
             <div>
@@ -1667,21 +1860,29 @@ function App() {
                             key={order.orderId}
                             style={{
                                 border: "1px solid #ddd",
-                                padding: "20px",
-                                marginBottom: "20px"
+                                borderRadius: "10px",
+                                padding: "25px",
+                                marginBottom: "25px",
+                                backgroundColor: "#fafafa",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
                             }}
                         >
-                            <p>Order ID: {order.orderId}</p>
-                            <p>Status: {order.status}</p>
-                            <p>Total: {order.totalAmount} kr</p>
-                            <p>Date: {order.orderDate}</p>
+                            <p><strong>Order ID:</strong> {order.orderId}</p>
+                            <p><strong>Order Status:</strong> {order.status}</p>
+
+                            <p><strong>Payment Status:</strong> {order.paymentStatus}</p>
+                            <p><strong>Payment Method:</strong> {order.paymentMethod}</p>
+
+                            <p><strong>Total:</strong> {order.totalAmount} kr</p>
+                            <p><strong>Date:</strong> {new Date(order.orderDate).toLocaleString()}</p>
+
                             <h4>Items</h4>
 
                             {order.items?.map(item => (
                                 <div key={item.orderItemId}>
-                                    <p>Product Variant ID: {item.productVariantId}</p>
-                                    <p>Quantity: {item.quantity}</p>
-                                    <p>Unit Price: {item.unitPrice} kr</p>
+                                    <p><strong>Product Variant ID:</strong> {item.productVariantId}</p>
+                                    <p><strong>Quantity:</strong> {item.quantity}</p>
+                                    <p><strong>Unit Price:</strong> {item.unitPrice} kr</p>
                                 </div>
                             ))}
                         </div>
@@ -2269,25 +2470,7 @@ function App() {
                         </span>
                     )}
                     <span
-                        onClick={async () => {
-                            const response = await fetch("https://localhost:7042/api/Orders/my-orders", {
-                                headers: {
-                                    "Authorization": `Bearer ${token}`
-                                }
-                            })
-
-                            if (!response.ok) {
-                                alert("Could not load orders")
-                                return
-                            }
-
-                            const data = await response.json()
-
-                            console.log(data)
-
-                            setOrders(data)
-                            setShowOrders(true)
-                        }}
+                        onClick={fetchMyOrders}
                         style={{ marginRight: "20px", cursor: "pointer" }}
                     >
                         My Orders
