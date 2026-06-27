@@ -97,7 +97,7 @@ function App() {
     }, [cart])
 
     function fetchProducts() {
-        fetch("https://localhost:7042/api/Products?page=1&pageSize=10")
+        fetch("https://teecraft-api.onrender.com/api/Products?page=1&pageSize=10")
             .then(response => response.json())
             .then(data => {
                 setProducts(data.items)
@@ -105,7 +105,7 @@ function App() {
     }
 
     const fetchMyOrders = async () => {
-        const response = await fetch("https://localhost:7042/api/Orders/my-orders", {
+        const response = await fetch("https://teecraft-api.onrender.com/api/Orders/my-orders", {
             headers: {
                 "Authorization": `Bearer ${token}`
             }
@@ -125,7 +125,7 @@ function App() {
     }
 
     const loginUser = async () => {
-        const response = await fetch("https://localhost:7042/api/Auth/login", {
+        const response = await fetch("https://teecraft-api.onrender.com/api/Auth/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -157,7 +157,7 @@ function App() {
     }
 
     const registerUser = async () => {
-        const response = await fetch("https://localhost:7042/api/Auth/register", {
+        const response = await fetch("https://teecraft-api.onrender.com/api/Auth/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -209,7 +209,7 @@ function App() {
             return
         }
 
-        const response = await fetch("https://localhost:7042/api/Cart/items", {
+        const response = await fetch("https://teecraft-api.onrender.com/api/Cart/items", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -288,7 +288,7 @@ function App() {
         setSearchTerm("")
 
         const response = await fetch(
-            `https://localhost:7042/api/Reviews/product/${product.productId}`,
+            `https://teecraft-api.onrender.com/api/Reviews/product/${product.productId}`,
             {
                 headers: {
                     "Authorization": `Bearer ${token}`
@@ -351,7 +351,7 @@ function App() {
                                     return
                                 }
 
-                                const response = await fetch("https://localhost:7042/api/Admin/dashboard", {
+                                const response = await fetch("https://teecraft-api.onrender.com/api/Admin/dashboard", {
                                     headers: {
                                         "Authorization": `Bearer ${token}`
                                     }
@@ -383,7 +383,7 @@ function App() {
                                     return
                                 }
 
-                                const response = await fetch("https://localhost:7042/api/Orders", {
+                                const response = await fetch("https://teecraft-api.onrender.com/api/Orders", {
                                     headers: {
                                         "Authorization": `Bearer ${token}`
                                     }
@@ -416,7 +416,7 @@ function App() {
                                     return
                                 }
 
-                                const response = await fetch("https://localhost:7042/api/Admin/low-stock", {
+                                const response = await fetch("https://teecraft-api.onrender.com/api/Admin/low-stock", {
                                     headers: {
                                         "Authorization": `Bearer ${token}`
                                     }
@@ -451,7 +451,7 @@ function App() {
                                 }
 
                                 const response = await fetch(
-                                    "https://localhost:7042/api/ProductVariants",
+                                    "https://teecraft-api.onrender.com/api/ProductVariants",
                                     {
                                         headers: {
                                             "Authorization": `Bearer ${token}`
@@ -544,7 +544,7 @@ function App() {
                                 <button
                                     onClick={async () => {
                                         const response = await fetch(
-                                            "https://localhost:7042/api/Products",
+                                            "https://teecraft-api.onrender.com/api/Products",
                                             {
                                                 method: "POST",
                                                 headers: {
@@ -567,7 +567,7 @@ function App() {
                                         }
 
                                         const refreshedResponse = await fetch(
-                                            "https://localhost:7042/api/Products",
+                                            "https://teecraft-api.onrender.com/api/Products",
                                             {
                                                 headers: {
                                                     "Authorization": `Bearer ${token}`
@@ -671,7 +671,7 @@ function App() {
                                 <button
                                     onClick={async () => {
                                         const response = await fetch(
-                                            "https://localhost:7042/api/ProductVariants",
+                                            "https://teecraft-api.onrender.com/api/ProductVariants",
                                             {
                                                 method: "POST",
                                                 headers: {
@@ -761,7 +761,7 @@ function App() {
                                             }
 
                                             const response = await fetch(
-                                                `https://localhost:7042/api/Products/${product.productId}`,
+                                                `https://teecraft-api.onrender.com/api/Products/${product.productId}`,
                                                 {
                                                     method: "DELETE",
                                                     headers: {
@@ -833,7 +833,7 @@ function App() {
                                             <button
                                                 onClick={async () => {
                                                     const response = await fetch(
-                                                        `https://localhost:7042/api/Products/${product.productId}`,
+                                                        `https://teecraft-api.onrender.com/api/Products/${product.productId}`,
                                                         {
                                                             method: "PUT",
                                                             headers: {
@@ -897,7 +897,7 @@ function App() {
                             }
 
                             const response = await fetch(
-                                "https://localhost:7042/api/Products",
+                                "https://teecraft-api.onrender.com/api/Products",
                                 {
                                     headers: {
                                         "Authorization": `Bearer ${token}`
@@ -961,7 +961,7 @@ function App() {
                                     <button
                                         onClick={async () => {
                                             const response = await fetch(
-                                                `https://localhost:7042/api/ProductVariants/${variant.productVariantId}/stock`,
+                                                `https://teecraft-api.onrender.com/api/ProductVariants/${variant.productVariantId}/stock`,
                                                 {
                                                     method: "PUT",
                                                     headers: {
@@ -1056,7 +1056,7 @@ function App() {
                                     const newStatus = e.target.value
 
                                     const response = await fetch(
-                                        `https://localhost:7042/api/Orders/${order.orderId}/status`,
+                                        `https://teecraft-api.onrender.com/api/Orders/${order.orderId}/status`,
                                         {
                                             method: "PUT",
                                             headers: {
@@ -1101,7 +1101,7 @@ function App() {
                                         return
                                     }
 
-                                    const response = await fetch(`https://localhost:7042/api/Orders/${order.orderId}/history`, {
+                                    const response = await fetch(`https://teecraft-api.onrender.com/api/Orders/${order.orderId}/history`, {
                                         headers: {
                                             "Authorization": `Bearer ${token}`
                                         }
@@ -1641,7 +1641,7 @@ function App() {
                                 return
                             }
 
-                            const response = await fetch("https://localhost:7042/api/Orders/checkout", {
+                            const response = await fetch("https://teecraft-api.onrender.com/api/Orders/checkout", {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
@@ -1659,7 +1659,7 @@ function App() {
 
                             const order = await response.json()
 
-                            const paymentResponse = await fetch("https://localhost:7042/api/Payments/simulate", {
+                            const paymentResponse = await fetch("https://teecraft-api.onrender.com/api/Payments/simulate", {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
@@ -2202,7 +2202,7 @@ function App() {
                     <button
                         onClick={async () => {
                             const response = await fetch(
-                                "https://localhost:7042/api/Reviews",
+                                "https://teecraft-api.onrender.com/api/Reviews",
                                 {
                                     method: "POST",
                                     headers: {
@@ -2220,7 +2220,7 @@ function App() {
                             if (response.ok) {
 
                                 const reviewsResponse = await fetch(
-                                    `https://localhost:7042/api/Reviews/product/${selectedProduct.productId}`,
+                                    `https://teecraft-api.onrender.com/api/Reviews/product/${selectedProduct.productId}`,
                                     {
                                         headers: {
                                             "Authorization": `Bearer ${token}`
