@@ -78,9 +78,12 @@ public class Program
         {
             options.AddPolicy("AllowFrontend", policy =>
             {
-                policy.WithOrigins("http://localhost:5173")
-                      .AllowAnyHeader()
-                      .AllowAnyMethod();
+                policy.WithOrigins(
+                        "http://localhost:5173",
+                        "https://teecraft-shop.netlify.app"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
             });
         });
 
