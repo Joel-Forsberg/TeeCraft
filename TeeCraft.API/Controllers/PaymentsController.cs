@@ -33,6 +33,7 @@ public class PaymentsController : ControllerBase
         }
 
         var status = dto.ShouldSucceed ? "Paid" : "Failed";
+        var processedAt = DateTime.UtcNow;
 
         if (order.Payment == null)
         {
@@ -42,7 +43,7 @@ public class PaymentsController : ControllerBase
                 PaymentMethod = dto.PaymentMethod,
                 PaymentStatus = status,
                 Amount = order.TotalAmount,
-                PaymentDate = DateTime.UtcNow
+                PaymentDate = processedAt
             };
         }
         else
@@ -50,7 +51,23 @@ public class PaymentsController : ControllerBase
             order.Payment.PaymentMethod = dto.PaymentMethod;
             order.Payment.PaymentStatus = status;
             order.Payment.Amount = order.TotalAmount;
-            order.Payment.PaymentDate = DateTime.UtcNow;
+            order.Payment.PaymentDate = processedAt;
+        }
+
+        // If payment succeeds, move the order forward
+        if (dto.ShouldSucceed && order.Status != "Processing")
+        {
+            var oldStatus = order.Status;
+
+            order.Status = "Processing";
+
+            _context.OrderStatusHistories.Add(new OrderStatusHistory
+            {
+                OrderId = order.OrderId,
+                OldStatus = oldStatus,
+                NewStatus = "Processing",
+                ChangedAt = processedAt
+            });
         }
 
         await _context.SaveChangesAsync();
@@ -60,7 +77,7 @@ public class PaymentsController : ControllerBase
             OrderId = order.OrderId,
             PaymentStatus = status,
             Amount = order.TotalAmount,
-            ProcessedAt = DateTime.UtcNow,
+            ProcessedAt = processedAt,
             Message = dto.ShouldSucceed
                 ? "Payment completed successfully."
                 : "Payment failed."

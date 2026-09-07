@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -69,6 +70,7 @@ public class AuthController : ControllerBase
     }
 
     // POST: api/auth/register-admin
+    [Authorize(Roles = "Admin")]
     [HttpPost("register-admin")]
     public async Task<ActionResult> RegisterAdmin(RegisterAdminDto dto)
     {
