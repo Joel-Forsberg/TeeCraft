@@ -2068,8 +2068,18 @@ function App() {
                         <h2>{selectedProduct.basePrice} kr</h2>
 
                         <p>Category: {selectedProduct.categoryName}</p>
-                        <p>Rating: {selectedProduct.averageRating}</p>
-                        <p>Reviews: {selectedProduct.reviewCount}</p>
+                        <p>
+                            Rating: {
+                                reviews.length > 0
+                                    ? (
+                                        reviews.reduce((sum, review) => sum + review.rating, 0) /
+                                        reviews.length
+                                    ).toFixed(1)
+                                    : 0
+                            }
+                        </p>
+
+                        <p>Reviews: {reviews.length}</p>
 
                         <h3>Variants</h3>
 
@@ -2199,58 +2209,77 @@ function App() {
                         }}
                     />
 
-                    <button
-                        onClick={async () => {
-                            const response = await fetch(
-                                "https://teecraft-api.onrender.com/api/Reviews",
-                                {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "Authorization": `Bearer ${token}`
-                                    },
-                                    body: JSON.stringify({
-                                        productId: selectedProduct.productId,
-                                        rating: reviewRating,
-                                        comment: reviewComment
-                                    })
-                                }
-                            )
-
-                            if (response.ok) {
-
-                                const reviewsResponse = await fetch(
-                                    `https://teecraft-api.onrender.com/api/Reviews/product/${selectedProduct.productId}`,
+                        <button
+                            onClick={async () => {
+                                const response = await fetch(
+                                    "https://teecraft-api.onrender.com/api/Reviews",
                                     {
+                                        method: "POST",
                                         headers: {
+                                            "Content-Type": "application/json",
                                             "Authorization": `Bearer ${token}`
-                                        }
+                                        },
+                                        body: JSON.stringify({
+                                            productId: selectedProduct.productId,
+                                            rating: reviewRating,
+                                            comment: reviewComment
+                                        })
                                     }
                                 )
 
-                                if (reviewsResponse.ok) {
-                                    const data = await reviewsResponse.json()
-                                    setReviews(data)
+                                if (response.ok) {
+
+                                    const reviewsResponse = await fetch(
+                                        `https://teecraft-api.onrender.com/api/Reviews/product/${selectedProduct.productId}`,
+                                        {
+                                            headers: {
+                                                "Authorization": `Bearer ${token}`
+                                            }
+                                        }
+                                    )
+
+                                    if (reviewsResponse.ok) {
+                                        const data = await reviewsResponse.json()
+                                        setReviews(data)
+
+                                        // Get fresh rating and review count from backend
+                                        const productsResponse = await fetch(
+                                            "https://teecraft-api.onrender.com/api/Products?page=1&pageSize=10"
+                                        )
+
+                                        if (productsResponse.ok) {
+                                            const updatedProducts = await productsResponse.json()
+
+                                            setProducts(updatedProducts)
+
+                                            const updatedProduct = updatedProducts.find(
+                                                product => product.productId === selectedProduct.productId
+                                            )
+
+                                            if (updatedProduct) {
+                                                setSelectedProduct(updatedProduct)
+                                            }
+                                        }
+                                    }
+
+                                    setReviewComment("")
+                                    setReviewRating(5)
+
+                                    alert("Review submitted!")
                                 }
-
-                                setReviewComment("")
-                                setReviewRating(5)
-
-                                alert("Review submitted!")
-                            }
-                            else {
-                                alert("Could not submit review")
-                            }
-                        }}
-                        style={{
-                            padding: "10px 20px",
-                            backgroundColor: "black",
-                            color: "white",
-                            border: "none",
-                            cursor: "pointer"
-                        }}
-                    >
-                        Submit Review
+                                else {
+                                    alert("Could not submit review")
+                                }
+                            }}
+                            style={{
+                                padding: "10px 20px",
+                                backgroundColor: "black",
+                                color: "white",
+                                border: "none",
+                                cursor: "pointer"
+                            }}
+                        >
+                            Submit Review
                         </button>
                     </div>
 
