@@ -116,7 +116,7 @@ public class OrdersController : ControllerBase
             Payment = new Payment
             {
                 PaymentMethod = dto.PaymentMethod,
-                PaymentStatus = "Paid",
+                PaymentStatus = "Pending",
                 Amount = totalAmount,
                 PaymentDate = DateTime.UtcNow
             }
