@@ -5,6 +5,8 @@ using Stripe.Checkout;
 using System.Security.Claims;
 using TeeCraft.API.Data;
 using TeeCraft.API.DTOs.Stripe;
+using Stripe;
+using TeeCraft.API.Models;
 
 namespace TeeCraft.API.Controllers;
 
@@ -68,6 +70,11 @@ public class StripeController : ControllerBase
         {
             Mode = "payment",
 
+            Metadata = new Dictionary<string, string>
+            {
+                { "orderId", order.OrderId.ToString() }
+            },
+
             SuccessUrl =
                 $"https://teecraft-shop.netlify.app/?stripe=success&orderId={order.OrderId}&session_id={{CHECKOUT_SESSION_ID}}",
 
@@ -104,5 +111,92 @@ public class StripeController : ControllerBase
             sessionId = session.Id,
             url = session.Url
         });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("webhook")]
+    public async Task<IActionResult> Webhook()
+    {
+        var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+
+        var webhookSecret = _configuration["Stripe:WebhookSecret"];
+
+        if (string.IsNullOrWhiteSpace(webhookSecret))
+        {
+            return StatusCode(500, "Stripe webhook configuration is missing.");
+        }
+
+        Event stripeEvent;
+
+        try
+        {
+            stripeEvent = EventUtility.ConstructEvent(
+                json,
+                Request.Headers["Stripe-Signature"],
+                webhookSecret
+            );
+        }
+        catch (StripeException)
+        {
+            return BadRequest("Invalid Stripe signature.");
+        }
+
+        if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
+        {
+            var session = stripeEvent.Data.Object as Session;
+
+            if (session != null &&
+                session.PaymentStatus == "paid" &&
+                session.Metadata.TryGetValue("orderId", out var orderIdValue) &&
+                int.TryParse(orderIdValue, out var orderId))
+            {
+                var order = await _context.Orders
+                    .Include(o => o.Payment)
+                    .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+                if (order != null)
+                {
+                    var processedAt = DateTime.UtcNow;
+
+                    if (order.Payment == null)
+                    {
+                        order.Payment = new Payment
+                        {
+                            OrderId = order.OrderId,
+                            PaymentMethod = "Stripe",
+                            PaymentStatus = "Paid",
+                            Amount = order.TotalAmount,
+                            PaymentDate = processedAt
+                        };
+                    }
+                    else if (order.Payment.PaymentStatus != "Paid")
+                    {
+                        order.Payment.PaymentMethod = "Stripe";
+                        order.Payment.PaymentStatus = "Paid";
+                        order.Payment.Amount = order.TotalAmount;
+                        order.Payment.PaymentDate = processedAt;
+                    }
+
+                    if (order.Status != "Processing")
+                    {
+                        var oldStatus = order.Status;
+
+                        order.Status = "Processing";
+
+                        _context.OrderStatusHistories.Add(new OrderStatusHistory
+                        {
+                            OrderId = order.OrderId,
+                            OldStatus = oldStatus,
+                            NewStatus = "Processing",
+                            ChangedAt = processedAt
+                        });
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
+
+        return Ok();
     }
 }
