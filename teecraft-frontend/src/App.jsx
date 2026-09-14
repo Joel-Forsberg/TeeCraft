@@ -124,6 +124,66 @@ function App() {
         setShowOrders(true)
     }
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        const stripeStatus = params.get("stripe")
+
+        if (stripeStatus === "success") {
+            setCart([])
+            localStorage.removeItem("cart")
+
+            setShowCart(false)
+            setShowCheckout(false)
+            setSelectedProduct(null)
+
+            setCustomerName("")
+            setCustomerEmail("")
+            setCustomerAddress("")
+
+            fetchProducts()
+
+            const orderId = Number(params.get("orderId"))
+
+            fetch("https://teecraft-api.onrender.com/api/Orders/my-orders", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setOrders(data)
+
+                    const paidOrder = data.find(
+                        order => order.orderId === orderId
+                    )
+
+                    if (paidOrder) {
+                        setLastOrder(paidOrder)
+                    }
+
+                    setShowOrders(false)
+                    setShowThankYou(true)
+                })
+
+            window.history.replaceState(
+                {},
+                "",
+                window.location.pathname
+            )
+        }
+
+        if (stripeStatus === "cancel") {
+            alert("Payment was cancelled.")
+
+            window.history.replaceState(
+                {},
+                "",
+                window.location.pathname
+            )
+        }
+    }, [])
+
+
     const loginUser = async () => {
         const response = await fetch("https://teecraft-api.onrender.com/api/Auth/login", {
             method: "POST",
@@ -1641,16 +1701,19 @@ function App() {
                                 return
                             }
 
-                            const response = await fetch("https://teecraft-api.onrender.com/api/Orders/checkout", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${token}`
-                                },
-                                body: JSON.stringify({
-                                    paymentMethod: "Card"
-                                })
-                            })
+                            const response = await fetch(
+                                "https://teecraft-api.onrender.com/api/Orders/checkout",
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "Authorization": `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({
+                                        paymentMethod: "Stripe"
+                                    })
+                                }
+                            )
 
                             if (!response.ok) {
                                 alert("Checkout failed.")
@@ -1659,45 +1722,28 @@ function App() {
 
                             const order = await response.json()
 
-                            const paymentResponse = await fetch("https://teecraft-api.onrender.com/api/Payments/simulate", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "Authorization": `Bearer ${token}`
-                                },
-                                body: JSON.stringify({
-                                    orderId: order.orderId,
-                                    paymentMethod: "Card",
-                                    shouldSucceed: true
-                                })
-                            })
+                            const stripeResponse = await fetch(
+                                "https://teecraft-api.onrender.com/api/Stripe/create-checkout-session",
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "Authorization": `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({
+                                        orderId: order.orderId
+                                    })
+                                }
+                            )
 
-                            if (!paymentResponse.ok) {
-                                alert("Order created, but payment failed.")
+                            if (!stripeResponse.ok) {
+                                alert("Could not start Stripe payment.")
                                 return
                             }
 
-                            const paymentResult = await paymentResponse.json()
+                            const stripeData = await stripeResponse.json()
 
-                            if (paymentResult.paymentStatus !== "Paid") {
-                                alert("Order created, but payment was not approved.")
-                                return
-                            }
-
-                            alert("Purchase completed and payment approved!")
-
-                            setLastOrder(order)
-                            setCart([])
-                            localStorage.removeItem("cart")
-                            setCustomerName("")
-                            setCustomerEmail("")
-                            setCustomerAddress("")
-                            setShowCheckout(false)
-                            setShowCart(false)
-                            setSelectedProduct(null)
-                            setShowThankYou(true)
-
-                            fetchProducts()
+                            window.location.href = stripeData.url
                         }}
                         style={{
                             marginTop: "30px",
