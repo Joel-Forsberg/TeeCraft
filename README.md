@@ -33,6 +33,10 @@ https://teecraft-api.onrender.com/swagger
 - CSS
 - Fetch API
 
+### Betalning
+- Stripe Checkout
+- Stripe Test Mode
+
 ### Deployment
 - Netlify – frontend
 - Render – backend
@@ -55,7 +59,7 @@ Applikationen innehåller bland annat:
 - Checkout
 - Orderhantering
 - Orderhistorik
-- Simulerad betalning
+- Stripe Checkout och betalningsflöde
 - Lageruppdatering efter köp
 - REST API
 
@@ -161,18 +165,18 @@ Checkout
       ↓
 Skapa order
       ↓
-Simulera betalning
+Stripe Checkout
       ↓
 Visa orderhistorik
 ```
 
 ## Betalning
 
-Projektet använder inte en riktig betalningsleverantör.
+Applikationen använder Stripe för checkout och betalningsflödet.
 
-Istället finns en simulerad betalningsfunktion där en betalning kan markeras som lyckad eller misslyckad.
+När användaren genomför ett köp skapas en checkout-session och användaren skickas vidare till Stripe för betalning. Efter genomförd betalning återgår användaren till applikationen och orderflödet slutförs.
 
-Syftet är att demonstrera hur betalningsflödet kan kopplas till orderhanteringen utan att genomföra riktiga ekonomiska transaktioner.
+Stripe används i testläge under projektet, vilket innebär att inga riktiga betalningar behöver genomföras vid demonstration och testning.
 
 ## Säkerhet
 
@@ -195,7 +199,7 @@ Känsliga värden såsom databasanslutningar och JWT-nycklar ska inte lagras dir
 Klona repositoryt:
 
 ```bash
-git clone [DIN-GITHUB-LÄNK]
+git clone https://github.com/Joel-Forsberg/TeeCraft.git
 ```
 
 Gå till backend-projektet:
@@ -244,6 +248,7 @@ Backend kräver bland annat:
 
 - PostgreSQL- eller SQL Server-anslutning
 - JWT-konfiguration
+- Stripe-konfiguration
 
 Exempel på struktur i `appsettings.json`:
 
@@ -256,11 +261,12 @@ Exempel på struktur i `appsettings.json`:
     "Key": "YOUR_SECRET_KEY",
     "Issuer": "YOUR_ISSUER",
     "Audience": "YOUR_AUDIENCE"
+  },
+  "Stripe": {
+    "SecretKey": "YOUR_STRIPE_SECRET_KEY"
   }
 }
 ```
-
-Riktiga lösenord och hemliga nycklar ska inte committas till GitHub.
 
 ## Testning
 
@@ -275,7 +281,7 @@ Testerna har bland annat omfattat:
 - Kundvagn
 - Checkout
 - Orderhistorik
-- Betalningssimulering
+- Stripe Checkout och betalningsflöde
 - Lageruppdatering
 
 Frontend har även testats tillsammans med det publicerade API:et för att verifiera hela användarflödet.
@@ -286,20 +292,18 @@ Alla funktioner från den ursprungliga kravspecifikationen implementerades inte.
 
 Exempel på funktioner som inte prioriterades:
 
-- Riktig betalningsintegration
 - Rabattkoder
 - E-postbekräftelser
 - Avancerad admin-dashboard
 - Avancerad lagerhantering
 - AI-baserade rekommendationer
 
-Fokus lades istället på att skapa ett fungerande komplett flöde från registrering till genomförd order.
+Fokus lades istället på att skapa ett fungerande komplett flöde från registrering och produktval till checkout, betalning och genomförd order.
 
 ## Framtida utveckling
 
 Projektet skulle kunna vidareutvecklas med:
 
-- Stripe eller annan riktig betalningslösning
 - Admin-dashboard
 - Produktrecensioner
 - Rabattkoder
